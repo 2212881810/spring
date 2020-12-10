@@ -18,9 +18,12 @@ import org.asciidoctor.gradle.AsciidoctorTask
 
 buildscript {
 	repositories {
+		maven { url "https://maven.aliyun.com/repository/spring" }
+		maven { url "https://maven.aliyun.com/repository/spring-plugin" }
 		gradlePluginPortal()
 		maven { url "https://repo.spring.io/plugins-release" }
 	}
+
 	dependencies {
 		classpath("org.asciidoctor:asciidoctor-gradle-plugin:1.5.8")
 		classpath("org.asciidoctor:asciidoctorj-pdf:1.5.0-alpha.16")

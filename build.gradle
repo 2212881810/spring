@@ -1,8 +1,9 @@
 buildscript {
 	repositories {
-		gradlePluginPortal()
-		maven { url "https://repo.spring.io/plugins-release" }
+		maven { url "https://maven.aliyun.com/repository/spring" }
+		maven { url "https://maven.aliyun.com/repository/spring-plugin" }
 	}
+	
 	dependencies {
 		classpath("io.spring.gradle:propdeps-plugin:0.0.9.RELEASE")
 		classpath("org.asciidoctor:asciidoctorj-pdf:1.5.0-alpha.16")
@@ -148,8 +149,9 @@ configure(allprojects) { project ->
 	}
 
 	repositories {
-		mavenCentral()
-		maven { url "https://repo.spring.io/libs-spring-framework-build" }
+		maven { url "https://maven.aliyun.com/repository/spring" }
+		maven { url "https://maven.aliyun.com/repository/spring-plugin" }
+		maven { url "https://maven.aliyun.com/repository/public" }
 	}
 
 	dependencies {
