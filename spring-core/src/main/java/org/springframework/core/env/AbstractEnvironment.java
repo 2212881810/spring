@@ -119,8 +119,12 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * allow subclasses to contribute or manipulate {@link PropertySource} instances as
 	 * appropriate.
 	 * @see #customizePropertySources(MutablePropertySources)
+	 *
+	 *
+	 * 创建一个新的环境实例 ，在创建该实例的过程中，回调customizePropertySources方法，以便于子类进行适当的改变
 	 */
 	public AbstractEnvironment() {
+		// 定制化的加载资源属性
 		customizePropertySources(this.propertySources);
 	}
 
@@ -386,7 +390,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	public Map<String, Object> getSystemProperties() {
 		try {
-			return (Map) System.getProperties();
+			return (Map) System.getProperties();  // 获取系统属性
 		}
 		catch (AccessControlException ex) {
 			return (Map) new ReadOnlySystemAttributesMap() {
@@ -415,7 +419,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 			return Collections.emptyMap();
 		}
 		try {
-			return (Map) System.getenv();
+			return (Map) System.getenv();  // 获取系统环境信息
 		}
 		catch (AccessControlException ex) {
 			return (Map) new ReadOnlySystemAttributesMap() {

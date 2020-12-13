@@ -144,6 +144,7 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	public void validateRequiredProperties() {
 		MissingRequiredPropertiesException ex = new MissingRequiredPropertiesException();
 		for (String key : this.requiredProperties) {
+			// 如果属性不存在 ，抛错
 			if (this.getProperty(key) == null) {
 				ex.addMissingRequiredProperty(key);
 			}
@@ -205,6 +206,7 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	@Override
 	public String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
 		if (this.strictHelper == null) {
+			// 创建占位符解析帮忙器
 			this.strictHelper = createPlaceholderHelper(false);
 		}
 		return doResolvePlaceholders(text, this.strictHelper);

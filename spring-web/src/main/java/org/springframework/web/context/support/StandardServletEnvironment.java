@@ -30,6 +30,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.web.context.ConfigurableWebEnvironment;
 
 /**
+ * spring-mvc的标准环境对象
  * {@link Environment} implementation to be used by {@code Servlet}-based web
  * applications. All web-related (servlet-based) {@code ApplicationContext} classes
  * initialize an instance by default.

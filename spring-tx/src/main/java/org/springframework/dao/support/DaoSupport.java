@@ -29,25 +29,34 @@ import org.springframework.beans.factory.InitializingBean;
  * JdbcDaoSupport, JdoDaoSupport, etc.
  *
  * @author Juergen Hoeller
- * @since 1.2.2
  * @see org.springframework.jdbc.core.support.JdbcDaoSupport
+ * @since 1.2.2
  */
 public abstract class DaoSupport implements InitializingBean {
 
-	/** Logger available to subclasses. */
+	/**
+	 * Logger available to subclasses.
+	 */
 	protected final Log logger = LogFactory.getLog(getClass());
 
 
+	/**
+	 * 这儿就是一个标准的模板方法
+	 *
+	 * @throws IllegalArgumentException
+	 * @throws BeanInitializationException
+	 */
 	@Override
 	public final void afterPropertiesSet() throws IllegalArgumentException, BeanInitializationException {
 		// Let abstract subclasses check their configuration.
+		// Mybatis就是在这个方法中完成初始化的
 		checkDaoConfig();
 
 		// Let concrete implementations initialize themselves.
+		// 具体的实现
 		try {
 			initDao();
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			throw new BeanInitializationException("Initialization of DAO failed", ex);
 		}
 	}
@@ -56,6 +65,7 @@ public abstract class DaoSupport implements InitializingBean {
 	 * Abstract subclasses must override this to check their configuration.
 	 * <p>Implementors should be marked as {@code final} if concrete subclasses
 	 * are not supposed to override this template method themselves.
+	 *
 	 * @throws IllegalArgumentException in case of illegal configuration
 	 */
 	protected abstract void checkDaoConfig() throws IllegalArgumentException;
@@ -63,8 +73,9 @@ public abstract class DaoSupport implements InitializingBean {
 	/**
 	 * Concrete subclasses can override this for custom initialization behavior.
 	 * Gets called after population of this instance's bean properties.
+	 *
 	 * @throws Exception if DAO initialization fails
-	 * (will be rethrown as a BeanInitializationException)
+	 *                   (will be rethrown as a BeanInitializationException)
 	 * @see org.springframework.beans.factory.BeanInitializationException
 	 */
 	protected void initDao() throws Exception {

@@ -1,8 +1,13 @@
 package qinfeng.zheng;
 
+import com.alibaba.druid.pool.DruidDataSource;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import qinfeng.zheng.component.User;
+
+import java.util.Properties;
 
 /**
  * @Author ZhengQinfeng
@@ -11,13 +16,13 @@ import qinfeng.zheng.component.User;
  */
 public class App {
 	public static void main(String[] args) {
-//		AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(SpringConfig.class);
-//		UserComponent userComponent = ac.getBean(UserComponent.class);
-//		userComponent.test();
-//		System.out.println("编译成功，开心");
 		AbstractApplicationContext ac = new ClassPathXmlApplicationContext("applicationContent.xml");
-		User user = ac.getBean(User.class);
-		System.out.println(user);
+//		AbstractApplicationContext ac = new MyClassPathXmlApplicationContext("applicationContent.xml");
+//		AbstractApplicationContext ac = new ClassPathXmlApplicationContext("spring-${username}.xml");
+
+		DruidDataSource dataSource = ac.getBean(DruidDataSource.class);
+		System.out.println(dataSource.getUsername());
+
 
 	}
 }

@@ -86,11 +86,15 @@ public class XmlWebApplicationContext extends AbstractRefreshableWebApplicationC
 		// resource loading environment.
 		beanDefinitionReader.setEnvironment(getEnvironment());
 		beanDefinitionReader.setResourceLoader(this);
+
+		//设置xml解析器
 		beanDefinitionReader.setEntityResolver(new ResourceEntityResolver(this));
 
 		// Allow a subclass to provide custom initialization of the reader,
 		// then proceed with actually loading the bean definitions.
+		// 扩展，子类实现
 		initBeanDefinitionReader(beanDefinitionReader);
+
 		loadBeanDefinitions(beanDefinitionReader);
 	}
 
@@ -119,9 +123,13 @@ public class XmlWebApplicationContext extends AbstractRefreshableWebApplicationC
 	 * @see #getResourcePatternResolver
 	 */
 	protected void loadBeanDefinitions(XmlBeanDefinitionReader reader) throws IOException {
+		// 获取到配置文件，就是new ClassPathXmlApplicationContext 传进来的
+		// 以String的方式获取配置文件位置
 		String[] configLocations = getConfigLocations();
+
 		if (configLocations != null) {
 			for (String configLocation : configLocations) {
+
 				reader.loadBeanDefinitions(configLocation);
 			}
 		}

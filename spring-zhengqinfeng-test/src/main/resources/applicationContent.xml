@@ -1,9 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+
+	<context:property-placeholder location="db.properties"/>
+
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+		<property name="driverClassName" value="${jdbc.driverClass}"></property>
+		<property name="url" value="${jdbc.jdbcUrl}"></property>
+		<property name="username" value="${jdbc.user}"></property>
+		<property name="password" value="${jdbc.password}"></property>
+	</bean>
 
 	<bean id="user" class="qinfeng.zheng.component.User">
-		<property name="userName" value="yueliang"></property>
+		<description>我是个用户</description>
+		<property name="student" ref="student"/>
+
+	</bean>
+
+	<bean id="student" class="qinfeng.zheng.component.Student">
+		<property name="user" ref="user"/>
+	</bean>
+
+
+	<bean id="school" class="qinfeng.zheng.component.School">
+	<!--	<constructor-arg index="0" value="100"/>
+		<constructor-arg index="1" value="小学"/>-->
+
+<!--		<constructor-arg type="java.lang.Integer" value="100"/>
+		<constructor-arg type="java.lang.String" value="小学"/>-->
+
+		<constructor-arg name="id" value="100"/>
+		<constructor-arg name="name" value="小学"/>
 	</bean>
 </beans>

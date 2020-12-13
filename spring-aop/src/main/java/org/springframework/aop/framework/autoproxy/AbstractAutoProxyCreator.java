@@ -233,10 +233,17 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		return null;
 	}
 
+	/**
+	 * 获取早期的bean引用[三级缓存]
+	 * @param bean the raw bean instance
+	 * @param beanName the name of the bean
+	 * @return
+	 */
 	@Override
 	public Object getEarlyBeanReference(Object bean, String beanName) {
 		Object cacheKey = getCacheKey(bean.getClass(), beanName);
 		this.earlyProxyReferences.put(cacheKey, bean);
+		// 返回一个动态代理对象
 		return wrapIfNecessary(bean, beanName, cacheKey);
 	}
 
@@ -345,15 +352,20 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 		// Create proxy if we have advice.
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
-		if (specificInterceptors != DO_NOT_PROXY) {
+
+		if (specificInterceptors != DO_NOT_PROXY) {  // 如果需要创建代理对象
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
-			Object proxy = createProxy(
-					bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
+
+			// 创建动态代理对象
+			Object proxy = createProxy(bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
 			this.proxyTypes.put(cacheKey, proxy.getClass());
+			// 返回代理对象
 			return proxy;
 		}
 
 		this.advisedBeans.put(cacheKey, Boolean.FALSE);
+
+		// 返回半成品对象
 		return bean;
 	}
 
@@ -468,6 +480,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			proxyFactory.setPreFiltered(true);
 		}
 
+		// 这一步才会创建Aop代理对象，前面都是一些属性设置
 		return proxyFactory.getProxy(getProxyClassLoader());
 	}
 

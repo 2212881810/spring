@@ -19,6 +19,7 @@ package org.springframework.context.support;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -31,14 +32,15 @@ import org.springframework.util.StringUtils;
  * {@link org.springframework.web.context.support.XmlWebApplicationContext}.
  *
  * @author Juergen Hoeller
- * @since 2.5.2
  * @see #setConfigLocation
  * @see #setConfigLocations
  * @see #getDefaultConfigLocations
+ * @since 2.5.2
  */
 public abstract class AbstractRefreshableConfigApplicationContext extends AbstractRefreshableApplicationContext
 		implements BeanNameAware, InitializingBean {
 
+	// 默认的配置文件路径
 	@Nullable
 	private String[] configLocations;
 
@@ -53,6 +55,7 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 
 	/**
 	 * Create a new AbstractRefreshableConfigApplicationContext with the given parent context.
+	 *
 	 * @param parent the parent context
 	 */
 	public AbstractRefreshableConfigApplicationContext(@Nullable ApplicationContext parent) {
@@ -71,6 +74,7 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 
 	/**
 	 * Set the config locations for this application context.
+	 * 设置应用程序上下文的配置路径
 	 * <p>If not set, the implementation may use a default as appropriate.
 	 */
 	public void setConfigLocations(@Nullable String... locations) {
@@ -78,10 +82,10 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 			Assert.noNullElements(locations, "Config locations must not be null");
 			this.configLocations = new String[locations.length];
 			for (int i = 0; i < locations.length; i++) {
+				// 解决配置文件
 				this.configLocations[i] = resolvePath(locations[i]).trim();
 			}
-		}
-		else {
+		} else {
 			this.configLocations = null;
 		}
 	}
@@ -92,6 +96,7 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	 * patterns, which will get resolved via a ResourcePatternResolver.
 	 * <p>The default implementation returns {@code null}. Subclasses can override
 	 * this to provide a set of resource locations to load bean definitions from.
+	 *
 	 * @return an array of resource locations, or {@code null} if none
 	 * @see #getResources
 	 * @see #getResourcePatternResolver
@@ -106,6 +111,7 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	 * explicit config locations have been specified.
 	 * <p>The default implementation returns {@code null},
 	 * requiring explicit config locations.
+	 *
 	 * @return an array of default config locations, if any
 	 * @see #setConfigLocations
 	 */
@@ -117,12 +123,16 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	/**
 	 * Resolve the given path, replacing placeholders with corresponding
 	 * environment property values if necessary. Applied to config locations.
+	 *
 	 * @param path the original file path
 	 * @return the resolved file path
 	 * @see org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)
 	 */
 	protected String resolvePath(String path) {
-		return getEnvironment().resolveRequiredPlaceholders(path);
+		// 创建Environment实例
+		ConfigurableEnvironment environment = getEnvironment();
+		// 对占位符 ${...} 进行解析
+		return environment.resolveRequiredPlaceholders(path);
 	}
 
 

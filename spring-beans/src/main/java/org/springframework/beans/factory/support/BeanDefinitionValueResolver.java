@@ -300,7 +300,7 @@ class BeanDefinitionValueResolver {
 				bean = this.beanFactory.getParentBeanFactory().getBean(refName);
 			}
 			else {
-				bean = this.beanFactory.getBean(refName);
+				bean = this.beanFactory.getBean(refName); // 如果存在循环引用，那么这一步的其实还是半成品bean
 				this.beanFactory.registerDependentBean(refName, this.beanName);
 			}
 			if (bean instanceof NullBean) {

@@ -256,6 +256,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 	/**
 	 * ApplicationEvents published before the multicaster setup.
+	 * 存储多播器启动之前的发布的事件
 	 */
 	@Nullable
 	private Set<ApplicationEvent> earlyApplicationEvents;
@@ -265,6 +266,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * Create a new AbstractApplicationContext with no parent.
 	 */
 	public AbstractApplicationContext() {
+		// 创建一个资源匹配解析器【解析配置文件用的】
 		this.resourcePatternResolver = getResourcePatternResolver();
 	}
 
@@ -369,6 +371,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * a custom {@link ConfigurableEnvironment} implementation.
 	 */
 	protected ConfigurableEnvironment createEnvironment() {
+
+		// 创建一个标准的环境对象
 		return new StandardEnvironment();
 	}
 
@@ -568,7 +572,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			 * 1. 设置容器启动时间
 			 * 2. 设置容器活动的标识
 			 * 3. 初始化 Environment 环境对象
-			 * 4. 初始化一些集合对象
+			 * 4. 初始化监听器和事件集合,默认都是空
 			 */
 			// 1. 准备工作
 			prepareRefresh();
@@ -589,7 +593,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 				// 4. 模板方法，留给子类做扩展
 				postProcessBeanFactory(beanFactory);
-
+				// springContext.xml文件中的占位符就是靠PropertySourcesPlaceholderConfigurer完成解析,它是一个Bfpp
 				// 5. 调用BFPP的实现
 				invokeBeanFactoryPostProcessors(beanFactory);
 
@@ -655,24 +659,28 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Initialize any placeholder property sources in the context environment.
-		// web项目才有用
+
+		// 设置需要验证的属性  # getEnvironment().validateRequiredProperties()就会去验证
 		initPropertySources();
 
 		// Validate that all properties marked as required are resolvable:
 		// see ConfigurablePropertyResolver#setRequiredProperties
+		//验证必须属性的存在性
 		getEnvironment().validateRequiredProperties();
 
 		// Store pre-refresh ApplicationListeners...
+		// 存储refresh之前的监听器集合
 		if (this.earlyApplicationListeners == null) {
 			this.earlyApplicationListeners = new LinkedHashSet<>(this.applicationListeners);
 		} else {
 			// Reset local application listeners to pre-refresh state.
 			this.applicationListeners.clear();
-			this.applicationListeners.addAll(this.earlyApplicationListeners);
+			this.applicationListeners.addAll(this.earlyApplicationListeners);  // springboot启动，默认就有14个监听器
 		}
 
 		// Allow for the collection of early ApplicationEvents,
 		// to be published once the multicaster is available...
+		// 事件集合
 		this.earlyApplicationEvents = new LinkedHashSet<>();
 	}
 
@@ -952,7 +960,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.setTempClassLoader(null);
 
 		// Allow for caching all bean definition metadata, not expecting further changes.
-		// 冻结所有的beanDefinition, 注意的BeanDefinition将不会进行修改
+		// 冻结所有的beanDefinition, 然后BeanDefinition将不会进行修改
 		beanFactory.freezeConfiguration();
 
 		// Instantiate all remaining (non-lazy-init) singletons.

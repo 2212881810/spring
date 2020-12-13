@@ -27,39 +27,46 @@ import org.springframework.aop.SpringProxy;
  *
  * <p>Creates a CGLIB proxy if one the following is true for a given
  * {@link AdvisedSupport} instance:
+ * 以下几种方式会创建cglib代理：
  * <ul>
- * <li>the {@code optimize} flag is set
- * <li>the {@code proxyTargetClass} flag is set
- * <li>no proxy interfaces have been specified
+ * <li>the {@code optimize} flag is set   ：设置了optimize标识
+ * <li>the {@code proxyTargetClass} flag is set  ：设置了proxyTargetClass
+ * <li>no proxy interfaces have been specified  ： 没有指明代理接口
  * </ul>
  *
  * <p>In general, specify {@code proxyTargetClass} to enforce a CGLIB proxy,
  * or specify one or more interfaces to use a JDK dynamic proxy.
+ * 通常而言，指定了proxyTargetClass会强制使用cglib, 实现了一个或多个接口会使用jdk动态代理
  *
  * @author Rod Johnson
  * @author Juergen Hoeller
- * @since 12.03.2004
  * @see AdvisedSupport#setOptimize
  * @see AdvisedSupport#setProxyTargetClass
  * @see AdvisedSupport#setInterfaces
+ * @since 12.03.2004
  */
 @SuppressWarnings("serial")
 public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 
 	@Override
 	public AopProxy createAopProxy(AdvisedSupport config) throws AopConfigException {
-		if (config.isOptimize() || config.isProxyTargetClass() || hasNoUserSuppliedProxyInterfaces(config)) {
+		if (config.isOptimize() || config.isProxyTargetClass() || hasNoUserSuppliedProxyInterfaces(config)) {  // 这三种方式会使用cglib代理
+
 			Class<?> targetClass = config.getTargetClass();
+
 			if (targetClass == null) {
-				throw new AopConfigException("TargetSource cannot determine target class: " +
-						"Either an interface or a target is required for proxy creation.");
+				throw new AopConfigException("TargetSource cannot determine target class: Either an interface or a target is required for proxy creation.");
 			}
+
 			if (targetClass.isInterface() || Proxy.isProxyClass(targetClass)) {
 				return new JdkDynamicAopProxy(config);
 			}
+
+			// cglib动态代理
 			return new ObjenesisCglibAopProxy(config);
-		}
-		else {
+
+
+		} else {
 			return new JdkDynamicAopProxy(config);
 		}
 	}
