@@ -39,6 +39,8 @@ import org.springframework.lang.Nullable;
  * @see DestructionAwareBeanPostProcessor
  * @see ConfigurableBeanFactory#addBeanPostProcessor
  * @see BeanFactoryPostProcessor
+ *
+ * 该接口是对bean进行功能增强
  */
 public interface BeanPostProcessor {
 

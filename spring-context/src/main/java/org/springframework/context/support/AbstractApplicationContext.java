@@ -579,25 +579,29 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 			/**
 			 * 1. 创建一个容器工厂，DefaultListableBeanFactory对象
-			 * 2. loadBeanDefinitions , 将类信息转换成BeanDefinition信息
+			 * 2. loadBeanDefinitions , 将类信息转换成BeanDefinition信息,并设置到当前容器对象中
 			 */
-			// 2. 创建一个BeanFactory实例
+			// 2. 创建一个BeanFactory实例，解析xml配置文件，BeanDefinition
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 
 
 			// 3. beanFactory的准确工作，对各种属性进行填充
+			// 对beanFactory设置1些具体的属性值
 			prepareBeanFactory(beanFactory);
 
 			try {
 
 				// 4. 模板方法，留给子类做扩展
 				postProcessBeanFactory(beanFactory);
+
+
 				// springContext.xml文件中的占位符就是靠PropertySourcesPlaceholderConfigurer完成解析,它是一个Bfpp
-				// 5. 调用BFPP的实现
+				// 5. 开始执行bfpp方法
 				invokeBeanFactoryPostProcessors(beanFactory);
 
-				// 6. 注册BPP,这里只是注册，调用是在getBean方法中
+
+				// 6. 注册BPP,这里只是注册，调用是在getBean方法中，在init-method方法前后执行。。。
 				registerBeanPostProcessors(beanFactory);
 
 				// 7.国际化处理
@@ -606,7 +610,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// 8. 初始化事件监听多路广播器
 				initApplicationEventMulticaster();
 
-				// 9. 模板方法
+				// 9. 模板方法, 在springboot中，会初始化tomcat容器
 				onRefresh();
 
 				// 10. 在所有注册的bean中找到listener bean ,然后将他们注册到消息广播器中
@@ -647,6 +651,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Switch to active.
 		// 初始化容器启动时间
 		this.startupDate = System.currentTimeMillis();
+		// 设置标识位
 		this.closed.set(false);
 		this.active.set(true);
 
@@ -661,6 +666,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Initialize any placeholder property sources in the context environment.
 
 		// 设置需要验证的属性  # getEnvironment().validateRequiredProperties()就会去验证
+		// extend01 : 留给子类去扩展， spring-web中有
 		initPropertySources();
 
 		// Validate that all properties marked as required are resolvable:
@@ -669,7 +675,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		getEnvironment().validateRequiredProperties();
 
 		// Store pre-refresh ApplicationListeners...
-		// 存储refresh之前的监听器集合
+		// 存储refresh之前的监听器集合， 用于扩展，springboot就实现了扩展
 		if (this.earlyApplicationListeners == null) {
 			this.earlyApplicationListeners = new LinkedHashSet<>(this.applicationListeners);
 		} else {
@@ -680,7 +686,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Allow for the collection of early ApplicationEvents,
 		// to be published once the multicaster is available...
-		// 事件集合
+		// 设置事件集合
 		this.earlyApplicationEvents = new LinkedHashSet<>();
 	}
 
@@ -716,7 +722,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Tell the internal bean factory to use the context's class loader etc.
 		// 1. 设置beanFactory的classLoader为当前context的classLoader
 		beanFactory.setBeanClassLoader(getClassLoader());
-		// 2. 设置beanFactory的表达式语言处理器
+		// 2. 设置beanFactory的表达式语言处理器， SPEL
 		beanFactory.setBeanExpressionResolver(new StandardBeanExpressionResolver(beanFactory.getBeanClassLoader()));
 		// 3. 为beanFactory增加一个默认的PropertyEditor, 这个主要用于管理的bean的属性
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
@@ -726,12 +732,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
 
 		// 5. 设置忽略自动装配的接口【因为这些接口通过set方法注入，比如EnvironmentAware#setEnvironment】
+		// 设置忽略的aware接口，后面在 initializeBean#invokeAwareMethods 方法中做统一处理
 		beanFactory.ignoreDependencyInterface(EnvironmentAware.class);
 		beanFactory.ignoreDependencyInterface(EmbeddedValueResolverAware.class);
 		beanFactory.ignoreDependencyInterface(ResourceLoaderAware.class);
 		beanFactory.ignoreDependencyInterface(ApplicationEventPublisherAware.class);
 		beanFactory.ignoreDependencyInterface(MessageSourceAware.class);
 		beanFactory.ignoreDependencyInterface(ApplicationContextAware.class);
+//		beanFactory.ignoreDependencyType();  // 有什么区别？？？
 
 		// BeanFactory interface not registered as resolvable type in a plain factory.
 		// MessageSource registered (and found for autowiring) as a bean.
@@ -783,8 +791,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 	/**
 	 * Instantiate and invoke all registered BeanFactoryPostProcessor beans,
-	 * respecting explicit order if given.
+	 * 实例化并且调用所有已经注册的BeanFactoryPostProcessor beans
+	 * respecting explicit order if given.  如果有顺序需要顺序执行。
+	 *
 	 * <p>Must be called before singleton instantiation.
+	 *    单例对象实例化之须要调用这个方法
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
@@ -799,6 +810,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 	/**
 	 * Instantiate and register all BeanPostProcessor beans,
+	 * 实例化并且注册所有的bpp beans
 	 * respecting explicit order if given.
 	 * <p>Must be called before any instantiation of application beans.
 	 */
@@ -932,7 +944,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * initializing all remaining singleton beans.
 	 */
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
-		// Initialize conversion service for this context.
+		// Initialize conversion service for this context. 初始化类型转换服务
 		// 如果beanFactory之前没有注册过值解释器，则注册默认的值解析器，主要用于注解属性值的解析
 		if (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME) &&
 				beanFactory.isTypeMatch(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class)) {
@@ -950,6 +962,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Initialize LoadTimeWeaverAware beans early to allow for registering their transformers early.
 
 		// 初始化LoadTimeWeaverAware bean , 以便于尽早注册他们的转换器
+		// 织入操作
 		String[] weaverAwareNames = beanFactory.getBeanNamesForType(LoadTimeWeaverAware.class, false, false);
 		for (String weaverAwareName : weaverAwareNames) {
 			getBean(weaverAwareName);

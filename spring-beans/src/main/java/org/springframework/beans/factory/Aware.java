@@ -19,6 +19,9 @@ package org.springframework.beans.factory;
 /**
  * A marker superinterface indicating that a bean is eligible to be notified by the
  * Spring container of a particular framework object through a callback-style method.
+ *
+ * 通过回调的方式获取spring容器的对象
+ *
  * The actual method signature is determined by individual subinterfaces but should
  * typically consist of just one void-returning method that accepts a single argument.
  *
@@ -33,5 +36,5 @@ package org.springframework.beans.factory;
  * @since 3.1
  */
 public interface Aware {
-
+	// 当容量创建的bean对象 在具体进行具体操作时，如果需要容器的其它对象 ，可以通过实现Aware接口来满足需求~~~@@@@
 }

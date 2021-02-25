@@ -90,6 +90,7 @@ public interface ConfigurablePropertyResolver extends PropertyResolver {
 	/**
 	 * Specify which properties must be present, to be verified by
 	 * {@link #validateRequiredProperties()}.
+	 * 指明必须存在的属性，将会通过validateRequiredProperties方法进行验证
 	 */
 	void setRequiredProperties(String... requiredProperties);
 
@@ -99,6 +100,8 @@ public interface ConfigurablePropertyResolver extends PropertyResolver {
 	 * non-{@code null} value.
 	 * @throws MissingRequiredPropertiesException if any of the required
 	 * properties are not resolvable.
+	 *
+	 * 验证所有通过setRequiredProperties方法设置的属性值
 	 */
 	void validateRequiredProperties() throws MissingRequiredPropertiesException;
 

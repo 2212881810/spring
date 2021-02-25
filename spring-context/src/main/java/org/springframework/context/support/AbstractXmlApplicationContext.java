@@ -80,12 +80,17 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	@Override
 	protected void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) throws BeansException, IOException {
 		// Create a new XmlBeanDefinitionReader for the given BeanFactory.
+		// 适配器模式，通过XxReader将beanDefinition对象注册到了BeanFactory容器中
+		// 抽象了一个BeanDefinition接口--->AbsBeanDefinition----> 具体多种实现类， 这就是套路吧~~~~
+		// 而这里使用了XmlBeanDefinitionReader 这种实现类
 		XmlBeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 
 		// Configure the bean definition reader with this context's
 		// resource loading environment.
 		beanDefinitionReader.setEnvironment(this.getEnvironment());
 		beanDefinitionReader.setResourceLoader(this);
+		// 设置实体处理器， 就是通过sax解析xml文件
+		// ResourceEntityResolver 对象将dtd文件和schema文件
 		beanDefinitionReader.setEntityResolver(new ResourceEntityResolver(this));
 
 		// Allow a subclass to provide custom initialization of the reader,

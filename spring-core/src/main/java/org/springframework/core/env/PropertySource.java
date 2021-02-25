@@ -202,6 +202,9 @@ public abstract class PropertySource<T> {
 	 * @see org.springframework.context.support.AbstractApplicationContext#initPropertySources()
 	 * @see org.springframework.web.context.support.StandardServletEnvironment
 	 * @see org.springframework.web.context.support.ServletContextPropertySource
+	 *
+	 *
+	 * 占位用的，并没有啥实际作用，后面会被这个Object对象会被ServletContextPropertySource对象替换掉
 	 */
 	public static class StubPropertySource extends PropertySource<Object> {
 
