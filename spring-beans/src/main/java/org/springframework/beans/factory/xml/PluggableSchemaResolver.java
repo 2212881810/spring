@@ -85,6 +85,7 @@ public class PluggableSchemaResolver implements EntityResolver {
 	 */
 	public PluggableSchemaResolver(@Nullable ClassLoader classLoader) {
 		this.classLoader = classLoader;
+		// DEFAULT_SCHEMA_MAPPINGS_LOCATION 这个下面就是xsd规范的schema
 		this.schemaMappingsLocation = DEFAULT_SCHEMA_MAPPINGS_LOCATION;
 	}
 

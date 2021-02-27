@@ -319,7 +319,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 			logger.trace("Loading XML bean definitions from " + encodedResource);
 		}
 
-		// 通过属性来记录已经加载的资源
+		// 通过属性来记录已经加载的资源（配置文件）
 		Set<EncodedResource> currentResources = this.resourcesCurrentlyBeingLoaded.get();
 
 		if (currentResources == null) {
@@ -331,10 +331,14 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 			throw new BeanDefinitionStoreException(
 					"Detected cyclic loading of " + encodedResource + " - check your import definitions!");
 		}
+
+
 		try {
-			// 读取配置文件
+			// 读取配置文件，将Resource转换成InputStream
 			InputStream inputStream = encodedResource.getResource().getInputStream();
+
 			try {
+				// 将inputStream包装成InputSource
 				InputSource inputSource = new InputSource(inputStream);
 				if (encodedResource.getEncoding() != null) {
 					inputSource.setEncoding(encodedResource.getEncoding());
@@ -397,10 +401,12 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 		try {
 			//此处将xml文件解析成document文档对象
+			// 将InputSource解析成document， document对象中就包含了节点信息
 			Document doc = doLoadDocument(inputSource, resource);
-			// 将document封装的node节点信息，解析出来，封装成一个一个的BeanDefinition对象
 
+			// 将document封装的node节点信息，解析出来，封装成一个一个的BeanDefinition对象
 			int count = registerBeanDefinitions(doc, resource);
+
 			if (logger.isDebugEnabled()) {
 				logger.debug("Loaded " + count + " bean definitions from " + resource);
 			}
@@ -458,7 +464,9 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 		if (validationModeToUse != VALIDATION_AUTO) {
 			return validationModeToUse;
 		}
+		// 探测配置文件的格式，是dtd还是xsd
 		int detectedMode = detectValidationMode(resource);
+
 		if (detectedMode != VALIDATION_AUTO) {
 			return detectedMode;
 		}
@@ -518,12 +526,15 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @see BeanDefinitionDocumentReader#registerBeanDefinitions
 	 */
 	public int registerBeanDefinitions(Document doc, Resource resource) throws BeanDefinitionStoreException {
+		//创建一个documentReader去解析document
 		BeanDefinitionDocumentReader documentReader = createBeanDefinitionDocumentReader();
 
 		// 从DefaultListableBeanFactory beanDefinitionMap中获取已经注册的bean的个数
 		int countBefore = getRegistry().getBeanDefinitionCount();
-		// 完成具体的解析过程
+
+		// 完成具体的解析过程[重点方法]
 		documentReader.registerBeanDefinitions(doc, createReaderContext(resource));
+
 		return getRegistry().getBeanDefinitionCount() - countBefore;
 	}
 

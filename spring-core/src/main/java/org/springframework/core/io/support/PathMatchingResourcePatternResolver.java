@@ -277,6 +277,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	@Override
 	public Resource[] getResources(String locationPattern) throws IOException {
 		Assert.notNull(locationPattern, "Location pattern must not be null");
+		// 传入的配置文件地址以classpath*: 开头
 		if (locationPattern.startsWith(CLASSPATH_ALL_URL_PREFIX)) {
 			// a class path resource (multiple resources for same name possible)
 			if (getPathMatcher().isPattern(locationPattern.substring(CLASSPATH_ALL_URL_PREFIX.length()))) {
@@ -299,6 +300,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 			}
 			else {
 				// a single resource with the given name
+				// 一般走这里
 				return new Resource[] {getResourceLoader().getResource(locationPattern)};
 			}
 		}

@@ -211,6 +211,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	 * @see #loadBeanDefinitions(org.springframework.core.io.Resource[])
 	 */
 	public int loadBeanDefinitions(String location, @Nullable Set<Resource> actualResources) throws BeanDefinitionStoreException {
+		// resourceLoader 资源加载器
 		ResourceLoader resourceLoader = getResourceLoader();
 		if (resourceLoader == null) {
 			throw new BeanDefinitionStoreException(
@@ -221,6 +222,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 			// Resource pattern matching available.
 			try {
 				// 将配置文件解析成Resource
+				// 之前传入的是一个String类型的文件名，通过这个方法之后，将其转换成Resource
 				Resource[] resources = ((ResourcePatternResolver) resourceLoader).getResources(location);
 				int count = loadBeanDefinitions(resources);
 				if (actualResources != null) {

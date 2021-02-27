@@ -433,11 +433,12 @@ public class BeanDefinitionParserDelegate {
 		}
 
 		if (containingBean == null) {
-			// 进name 进行唯一性检测
+			// 对bean的id  进行唯一性检测
 			checkNameUniqueness(beanName, aliases, ele);
 		}
-		// 真正的解析成beanDefinition的逻辑
+		// 真正的解析成beanDefinition的逻辑【重点方法】
 		AbstractBeanDefinition beanDefinition = parseBeanDefinitionElement(ele, beanName, containingBean);
+
 		if (beanDefinition != null) {
 			if (!StringUtils.hasText(beanName)) {
 				try {
@@ -517,6 +518,7 @@ public class BeanDefinitionParserDelegate {
 
 		try {
 			// 构造beanDefinition, 实际上是GenericBeanDefinition
+			// 有className的时候，其实就可以通过反射创建对象了
 			AbstractBeanDefinition bd = createBeanDefinition(className, parent);
 
 			// 解析其它属性，然后set到beanDefinition中去
@@ -531,6 +533,7 @@ public class BeanDefinitionParserDelegate {
 			parseReplacedMethodSubElements(ele, bd.getMethodOverrides());
 			// 解析构造器参数
 			parseConstructorArgElements(ele, bd);
+
 			// 解析property子元素
 			parsePropertyElements(ele, bd);
 			parseQualifierElements(ele, bd);
@@ -694,10 +697,13 @@ public class BeanDefinitionParserDelegate {
 	 * Parse constructor-arg sub-elements of the given bean element.
 	 */
 	public void parseConstructorArgElements(Element beanEle, BeanDefinition bd) {
+
 		NodeList nl = beanEle.getChildNodes();
+
 		for (int i = 0; i < nl.getLength(); i++) {
 			Node node = nl.item(i);
 			if (isCandidateElement(node) && nodeNameEquals(node, CONSTRUCTOR_ARG_ELEMENT)) {
+				// 解析构造器
 				parseConstructorArgElement((Element) node, bd);
 			}
 		}

@@ -126,6 +126,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		// then ultimately reset this.delegate back to its original (parent) reference.
 		// this behavior emulates a stack of delegates without actually necessitating one.
 		BeanDefinitionParserDelegate parent = this.delegate;
+
 		this.delegate = createDelegate(getReaderContext(), root, parent);
 
 		if (this.delegate.isDefaultNamespace(root)) {
@@ -145,9 +146,12 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 			}
 		}
 
+		// 设计模式： 模板方法
+		// 前
 		preProcessXml(root);
 		// 重点方法
 		parseBeanDefinitions(root, this.delegate);
+		// 后
 		postProcessXml(root);
 
 		this.delegate = parent;
@@ -174,10 +178,14 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 				if (node instanceof Element) {
 					Element ele = (Element) node;
 
+
 					if (delegate.isDefaultNamespace(ele)) {
+						//默认的namespace[4个] 一般走这儿
 						parseDefaultElement(ele, delegate);
 					}
 					else {
+						// 其它的namespace走这儿，比如：content, aop 等
+						// 比如<context:property-placeholder location="db.properties"/> 这个标签就会走这儿。。。。
 						delegate.parseCustomElement(ele);
 					}
 				}
@@ -306,14 +314,16 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 */
 	protected void processBeanDefinition(Element ele, BeanDefinitionParserDelegate delegate) {
 		// BeanDefinitionHolder 是beanDefinition,beanName ,beanAlias的封装类
+		// 重点方法
 		BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(ele);
 
 		if (bdHolder != null) {
+			// 如果有必须，对BeanDefinition进行装饰[不重要]
 			bdHolder = delegate.decorateBeanDefinitionIfRequired(ele, bdHolder);
 			try {
 				// Register the final decorated instance.
 
-				// 高spring Ioc容器注册beanDefinition
+				// 向spring Ioc容器注册beanDefinition 【*****】
 				BeanDefinitionReaderUtils.registerBeanDefinition(bdHolder, getReaderContext().getRegistry());
 			}
 			catch (BeanDefinitionStoreException ex) {

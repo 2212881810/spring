@@ -1,16 +1,8 @@
 package qinfeng.zheng;
 
-import com.alibaba.druid.pool.DruidDataSource;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.context.support.AbstractRefreshableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import qinfeng.zheng.bean.A;
-import qinfeng.zheng.component.AFactoryBean;
 import qinfeng.zheng.component.User;
-
-import java.util.Properties;
+import qinfeng.zheng.tag.TestJavaBean;
 
 /**
  * @Author ZhengQinfeng
@@ -28,8 +20,12 @@ public class App {
 		ac.setAllowCircularReferences(false);
 		ac.setConfigLocations("applicationContent.xml");
 		ac.refresh();
-		A bean = ac.getBean(A.class);
-		System.out.println(bean.getB());
+
+
+
+
+//		A bean = ac.getBean(A.class);
+//		System.out.println(bean.getB());
 
 //		AbstractApplicationContext ac = new ClassPathXmlApplicationContext("spring-${username}.xml");
 
