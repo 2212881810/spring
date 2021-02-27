@@ -1,8 +1,7 @@
 package qinfeng.zheng;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import qinfeng.zheng.component.User;
-import qinfeng.zheng.tag.TestJavaBean;
+import qinfeng.zheng.selfEditor.AddressPropertyEditorRegistrar;
 
 /**
  * @Author ZhengQinfeng
@@ -19,6 +18,7 @@ public class App {
 		ac.setAllowBeanDefinitionOverriding(false);
 		ac.setAllowCircularReferences(false);
 		ac.setConfigLocations("applicationContent.xml");
+		ac.getBeanFactory().addPropertyEditorRegistrar(new AddressPropertyEditorRegistrar());
 		ac.refresh();
 
 

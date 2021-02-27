@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+	<bean id="customer" class="qinfeng.zheng.selfEditor.Customer">
+		<property name="name" value="admin"></property>
+		<property name="address" value="四川省_成都市_武候区"/>
+	</bean>
+
+	<!--
+			第1种配置方式: 通过注册器注册editor
+			将自定义的AddressPropertyEditorRegistrar注册到CustomEditorConfigurer的
+			propertyEditorRegistrars属性中
+
+	-->
+	<bean class="org.springframework.beans.factory.config.CustomEditorConfigurer">
+		<property name="propertyEditorRegistrars">
+			<list>
+				<bean class="qinfeng.zheng.selfEditor.AddressPropertyEditorRegistrar"/>
+			</list>
+		</property>
+	</bean>
+
+
+	<!--
+		第2种配置方式:通过map的方式注册
+	-->
+<!--	<bean class="org.springframework.beans.factory.config.CustomEditorConfigurer">
+		<property name="customEditors">
+			<map>
+				<entry key="qinfeng.zheng.selfEditor.Address" value="qinfeng.zheng.selfEditor.AddressPropertyEditor"/>
+			</map>
+		</property>
+	</bean>-->
+</beans>

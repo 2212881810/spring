@@ -39,6 +39,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.AbstractBeanFactory;
 import org.springframework.beans.support.ResourceEditorRegistrar;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -587,7 +588,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 
 			// 3. beanFactory的准确工作，对各种属性进行填充
-			// 对beanFactory设置1些具体的属性值
+			// 对beanFactory设置一些具体的属性值
 			prepareBeanFactory(beanFactory);
 
 			try {
@@ -724,11 +725,25 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.setBeanClassLoader(getClassLoader());
 		// 2. 设置beanFactory的表达式语言处理器， SPEL
 		beanFactory.setBeanExpressionResolver(new StandardBeanExpressionResolver(beanFactory.getBeanClassLoader()));
+
 		// 3. 为beanFactory增加一个默认的PropertyEditor, 这个主要用于管理的bean的属性
+		// 扩展点,见selfEditor
+		// 这里有点搞?????
+		// spring默认的propertyEditor以及我们自定义的propertyEditor都是通过 ResourceEditorRegistrar注册进来的
+		// 而真正将propertyEditor注册的时机是在createBean的时候,具体是在AbstractBeanFactory#initBeanWrapper方法中
+
+		// 其实这里只是将 PropertyEditorRegistrar 注册器添加spring容器中,
+		// 真正的 PropertyEditor 属性编辑器是在AbstractBeanFactory#initBeanWrapper方法内部才注册的
+
+		// 而如果我们想自定义 PropertyEditor, 其是不是在此处进行配置,是通CustomEditorConfigurer这个类来完成
+		// 因为 CustomEditorConfigurer 是一个bfpp,  在它的postProcessBeanFactory方法内部会调用beanFactory.addPropertyEditorRegistrar()
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
+
+
 
 		// Configure the bean factory with context callbacks.
 		// 4. 添加一个BeanPostProcessor的实现类ApplicationContextAwareProcessor,此类用于完成某些Aware对象的注入
+		// Aware接口的作用是将容器的一些属性设置到某个具体的对象中去
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
 
 		// 5. 设置忽略自动装配的接口【因为这些接口通过set方法注入，比如EnvironmentAware#setEnvironment】
