@@ -129,6 +129,8 @@ class ComponentScanAnnotationParser {
 				return declaringClass.equals(className);
 			}
 		});
+
+		// 重点方法： 扫描，解析成ScannedGenericBeanDefinition
 		return scanner.doScan(StringUtils.toStringArray(basePackages));
 	}
 

@@ -86,19 +86,26 @@ abstract class ConfigurationClassUtils {
 			return false;
 		}
 
+
+		/*
+		  通过注解注入的BeanDefinition都是AnnotatedGenericBeanDefinition,实现了AnnotatedBeanDefinition接口;
+		  spring内部的beanDefinition都是RootBeanDefinition, 实现了AbstractBeanDefinition;
+
+		 */
 		AnnotationMetadata metadata;
+
 		if (beanDef instanceof AnnotatedBeanDefinition &&
 				className.equals(((AnnotatedBeanDefinition) beanDef).getMetadata().getClassName())) {
 			// Can reuse the pre-parsed metadata from the given BeanDefinition...
 			metadata = ((AnnotatedBeanDefinition) beanDef).getMetadata();
 		}
+		// 判断是否是spring默认的beanDefinition
 		else if (beanDef instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) beanDef).hasBeanClass()) {
 			// Check already loaded Class if present...
 			// since we possibly can't even load the class file for this Class.
 			Class<?> beanClass = ((AbstractBeanDefinition) beanDef).getBeanClass();
 			metadata = new StandardAnnotationMetadata(beanClass, true);
-		}
-		else {
+		}else {
 			try {
 				MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(className);
 				metadata = metadataReader.getAnnotationMetadata();
@@ -112,10 +119,22 @@ abstract class ConfigurationClassUtils {
 			}
 		}
 
+		// 判断是否有@Configuration注解， 如果是@Configuration这种类型的配置类称为full 配置类
 		if (isFullConfigurationCandidate(metadata)) {
+			// 设置属性configurationClass的value值为full
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
+
+
+		/*
+			candidateIndicators.add(Component.class.getName());
+			candidateIndicators.add(ComponentScan.class.getName());
+			candidateIndicators.add(Import.class.getName());
+			candidateIndicators.add(ImportResource.class.getName());
+		 */
+		//判断是否有@Component、@ComponentScan、 @Import 、@ImportResource 或者是 @Bean methods ， 这种配置类称为lite 配置类
 		else if (isLiteConfigurationCandidate(metadata)) {
+			// 设置属性configurationClass的value值为lite
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		}
 		else {

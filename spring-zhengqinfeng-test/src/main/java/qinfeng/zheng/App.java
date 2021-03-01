@@ -1,6 +1,7 @@
 package qinfeng.zheng;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import qinfeng.zheng.selfAware.MyAware;
 import qinfeng.zheng.selfEditor.AddressPropertyEditorRegistrar;
 
 /**
@@ -18,12 +19,11 @@ public class App {
 		ac.setAllowBeanDefinitionOverriding(false);
 		ac.setAllowCircularReferences(false);
 		ac.setConfigLocations("applicationContent.xml");
-		ac.getBeanFactory().addPropertyEditorRegistrar(new AddressPropertyEditorRegistrar());
 		ac.refresh();
 
+		MyAware bean = ac.getBean(MyAware.class);
 
-
-
+		System.out.println(bean);
 //		A bean = ac.getBean(A.class);
 //		System.out.println(bean.getB());
 

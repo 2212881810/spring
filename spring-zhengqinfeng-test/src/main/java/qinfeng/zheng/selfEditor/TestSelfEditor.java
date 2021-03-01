@@ -1,5 +1,7 @@
 package qinfeng.zheng.selfEditor;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -19,6 +21,7 @@ public class TestSelfEditor {
 		ac.setAllowBeanDefinitionOverriding(false);
 		ac.setAllowCircularReferences(false);
 		ac.setConfigLocations("selfEditor.xml");
+
 		ac.refresh();
 		// 不能通过这种方式来注册propertyEditor ,因为spring在解析xml配置时会加载Customer,
 		// 时就会用address属性,但是此时AddressPropertyEditorRegistrar这个还没有回载进去,所以没法解析,报错吧~

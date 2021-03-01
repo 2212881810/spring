@@ -1,4 +1,4 @@
-package qinfeng.zheng;
+package qinfeng.zheng.extend;
 
 import org.junit.Test;
 import org.springframework.context.support.AbstractApplicationContext;

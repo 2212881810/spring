@@ -84,7 +84,11 @@ public class AnnotatedBeanDefinitionReader {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 		Assert.notNull(environment, "Environment must not be null");
 		this.registry = registry;
+
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
+		// 注入spring默认的几个内部类，其中最重要的就是 ConfigurationClassPostProcessor
+		// 注解版就是在这儿注册这个类;
+		// 如果是xml版，是parseCustomElement这个方法内部注入的 ConfigurationClassPostProcessor等5个类
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 	}
 

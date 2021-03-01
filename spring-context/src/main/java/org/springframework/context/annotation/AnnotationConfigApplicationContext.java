@@ -84,8 +84,11 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * {@link Configuration @Configuration} classes
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
+		// 1.注册5个internalBeanDefinition, 其中最重要就是ConfigurationClassPostProcessor
 		this();
+		// 2. 将配置类注册beanDefinitionMap中去
 		register(componentClasses);
+		// 3. 赵级重要的方法
 		refresh();
 	}
 
