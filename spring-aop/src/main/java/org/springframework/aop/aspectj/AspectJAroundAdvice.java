@@ -37,10 +37,10 @@ import org.springframework.aop.ProxyMethodInvocation;
 @SuppressWarnings("serial")
 public class AspectJAroundAdvice extends AbstractAspectJAdvice implements MethodInterceptor, Serializable {
 
-	public AspectJAroundAdvice(
-			Method aspectJAroundAdviceMethod, AspectJExpressionPointcut pointcut, AspectInstanceFactory aif) {
+	public AspectJAroundAdvice(Method aspectJAroundAdviceMethod, AspectJExpressionPointcut pointcut, AspectInstanceFactory aif) {
 
 		super(aspectJAroundAdviceMethod, pointcut, aif);
+		System.err.println("实例化AspectJAroundAdvice");
 	}
 
 

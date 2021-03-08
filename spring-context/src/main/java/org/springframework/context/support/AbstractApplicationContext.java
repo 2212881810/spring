@@ -247,6 +247,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 	/**
 	 * Statically specified listeners.
+	 * 用来存放applicationListener的集合对象
 	 */
 	private final Set<ApplicationListener<?>> applicationListeners = new LinkedHashSet<>();
 
@@ -427,6 +428,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 	/**
 	 * Publish the given event to all listeners.
+	 * 发布事件到所有的监听器
 	 *
 	 * @param event     the event to publish (may be an {@link ApplicationEvent}
 	 *                  or a payload object to be turned into a {@link PayloadApplicationEvent})
@@ -437,10 +439,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		Assert.notNull(event, "Event must not be null");
 
 		// Decorate event as an ApplicationEvent if necessary
+		// 发有必要将 事件装饰成 ApplicationEvent
 		ApplicationEvent applicationEvent;
 		if (event instanceof ApplicationEvent) {
 			applicationEvent = (ApplicationEvent) event;
 		} else {
+			// 将事件event装饰成 PayloadApplicationEvent 事件
 			applicationEvent = new PayloadApplicationEvent<>(this, event);
 			if (eventType == null) {
 				eventType = ((PayloadApplicationEvent<?>) applicationEvent).getResolvableType();
@@ -451,6 +455,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		if (this.earlyApplicationEvents != null) {
 			this.earlyApplicationEvents.add(applicationEvent);
 		} else {
+			// 获取多播器来发布事件
 			getApplicationEventMulticaster().multicastEvent(applicationEvent, eventType);
 		}
 
@@ -605,25 +610,26 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 
-				// 6. 注册BPP,这里只是注册，调用是在doCreateBean方法中，在init-method方法前后执行这些BPP。。。
+				// 6. 注册BPP,这里只是注册，调用是在getBean方法中，但是这个方法内部其实也有getBean的调用
 				registerBeanPostProcessors(beanFactory);
 
 				// 7.国际化处理
 				initMessageSource();
 
-				// 8. 初始化事件监听多路广播器(多播器)
+				// 8. 初始化多播器
 				initApplicationEventMulticaster();
 
 				// 9. 模板方法, 在springboot中，会初始化tomcat容器
 				onRefresh();
 
-				// 10. 在所有注册的bean中找到listener bean ,然后将他们注册到消息广播器中
+				// 10. 在所有注册的bean中找到listener bean ,然后将他们注册到多播器中
 				registerListeners();
 
 				// 11. 实例化剩下的单例bean(非懒加载的)
 				finishBeanFactoryInitialization(beanFactory);
 
-				// Last step: publish corresponding event.
+				// Last step: publish corresponding event.、
+				//12. 完成刷新过程，通知生命周期处理器lifecycleProcessor刷新过程，同时发布ContextRefreshedEvent事件到监听器
 				finishRefresh();
 			} catch (BeansException ex) {
 				if (logger.isWarnEnabled()) {
@@ -769,7 +775,6 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 //		beanFactory.ignoreDependencyType();  // 有什么区别？？？
 
 
-
 		// BeanFactory interface not registered as resolvable type in a plain factory.
 		// MessageSource registered (and found for autowiring) as a bean.
 		// 6. 设置自动装配的特殊规则，当在进行Ioc初始化时，如果有多个实现，那么就使用指定的对象注入【DefaultListableBeanFactory】
@@ -785,9 +790,6 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// 如果用户想注入ApplicationContext类时，那么就注入this ====> DefaultListableBeanFactory
 		beanFactory.registerResolvableDependency(ApplicationContext.class, this);
 		// Register early post-processor for detecting inner beans as ApplicationListeners.
-
-
-
 
 
 		// 7. 注入BPP
@@ -863,6 +865,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	/**
 	 * Initialize the MessageSource.
 	 * Use parent's if none defined in this context.
+	 * <p>
+	 * 如果spring中有messageSource,就通过getBean创建出来，如果没有就new DelegatingMessageSource
+	 * ,并将其注册到spring中去；这块的逻辑与多播器一样的
+	 *
 	 */
 	protected void initMessageSource() {
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
@@ -965,18 +971,21 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void registerListeners() {
 		// Register statically specified listeners first.
+		// 遍历应用程序中的监听器集合，并将监听器注册到多播器中去
 		for (ApplicationListener<?> listener : getApplicationListeners()) {
 			getApplicationEventMulticaster().addApplicationListener(listener);
 		}
 
 		// Do not initialize FactoryBeans here: We need to leave all regular beans
 		// uninitialized to let post-processors apply to them!
+		// 从spring容器在中获取所有实现ApplicationListener接口的beanDefinition Names
 		String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, true, false);
 		for (String listenerBeanName : listenerBeanNames) {
 			getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
 		}
 
 		// Publish early application events now that we finally have a multicaster...
+		// 发布早期的监听器集合
 		Set<ApplicationEvent> earlyEventsToProcess = this.earlyApplicationEvents;
 		this.earlyApplicationEvents = null;
 		if (!CollectionUtils.isEmpty(earlyEventsToProcess)) {
@@ -991,8 +1000,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * initializing all remaining singleton beans.
 	 */
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
-		// Initialize conversion service for this context. 初始化类型转换服务
-		// 如果beanFactory之前没有注册过值解释器，则注册默认的值解析器，主要用于注解属性值的解析
+		// Initialize conversion service for this context.
+		// 初始化类型转换服务
 		if (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME) &&
 				beanFactory.isTypeMatch(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class)) {
 			beanFactory.setConversionService(
@@ -1002,6 +1011,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Register a default embedded value resolver if no bean post-processor
 		// (such as a PropertyPlaceholderConfigurer bean) registered any before:
 		// at this point, primarily for resolution in annotation attribute values.
+
+		// 如果beanFactory之前没有注册过值解释器，则注册默认的值解析器，主要用于注解属性值的解析
 		if (!beanFactory.hasEmbeddedValueResolver()) {
 			beanFactory.addEmbeddedValueResolver(strVal -> getEnvironment().resolvePlaceholders(strVal));
 		}
@@ -1044,6 +1055,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		getLifecycleProcessor().onRefresh();
 
 		// Publish the final event.
+		// AbstractApplicationContext发布ContextRefreshedEvent事件
 		publishEvent(new ContextRefreshedEvent(this));
 
 		// Participate in LiveBeansView MBean, if active.

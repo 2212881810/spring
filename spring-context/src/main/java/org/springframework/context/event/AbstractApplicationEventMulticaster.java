@@ -62,6 +62,9 @@ import org.springframework.util.ObjectUtils;
 public abstract class AbstractApplicationEventMulticaster
 		implements ApplicationEventMulticaster, BeanClassLoaderAware, BeanFactoryAware {
 
+	/**
+	 * 创建监听器帮助类，用于存放应用程序的监听器集合. 参数是否是预过滤器
+	 */
 	private final ListenerRetriever defaultRetriever = new ListenerRetriever(false);
 
 	final Map<ListenerCacheKey, ListenerRetriever> retrieverCache = new ConcurrentHashMap<>(64);
@@ -103,13 +106,18 @@ public abstract class AbstractApplicationEventMulticaster
 
 	@Override
 	public void addApplicationListener(ApplicationListener<?> listener) {
+		//锁定监听器帮助类
 		synchronized (this.retrievalMutex) {
 			// Explicitly remove target for a proxy, if registered already,
 			// in order to avoid double invocations of the same listener.
+
+			// 如果已经注册，则显示删除已经注册的监听器对象 ，为了避免监听器重复调用
 			Object singletonTarget = AopProxyUtils.getSingletonTarget(listener);
 			if (singletonTarget instanceof ApplicationListener) {
+				// 删除监听器
 				this.defaultRetriever.applicationListeners.remove(singletonTarget);
 			}
+			// 新增监听器
 			this.defaultRetriever.applicationListeners.add(listener);
 			this.retrieverCache.clear();
 		}
@@ -365,10 +373,13 @@ public abstract class AbstractApplicationEventMulticaster
 	 */
 	private class ListenerRetriever {
 
+		// 存放应用程序的事件监听器
 		public final Set<ApplicationListener<?>> applicationListeners = new LinkedHashSet<>();
 
+		// 存放应用程序事件监听器的bean名称
 		public final Set<String> applicationListenerBeans = new LinkedHashSet<>();
 
+		// 是否预过滤监听器
 		private final boolean preFiltered;
 
 		public ListenerRetriever(boolean preFiltered) {

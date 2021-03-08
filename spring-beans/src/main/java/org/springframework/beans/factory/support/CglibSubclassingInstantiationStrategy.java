@@ -114,9 +114,11 @@ public class CglibSubclassingInstantiationStrategy extends SimpleInstantiationSt
 		 * @return new instance of the dynamically generated subclass
 		 */
 		public Object instantiate(@Nullable Constructor<?> ctor, Object... args) {
+			//使用cglib创建一个动态代理子类 ，例如：class qinfeng.zheng.methodOverride.lookup.FruitPlate$$EnhancerBySpringCGLIB$$fe51c892
 			Class<?> subclass = createEnhancedSubclass(this.beanDefinition);
 			Object instance;
 			if (ctor == null) {
+				// 实例化
 				instance = BeanUtils.instantiateClass(subclass);
 			}
 			else {

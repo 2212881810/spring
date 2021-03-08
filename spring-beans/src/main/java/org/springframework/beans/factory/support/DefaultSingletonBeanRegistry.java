@@ -163,9 +163,13 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 */
 	protected void addSingleton(String beanName, Object singletonObject) {
 		synchronized (this.singletonObjects) {
+			//添加到一级缓存中
 			this.singletonObjects.put(beanName, singletonObject);
+			// 从三级缓存中移除
 			this.singletonFactories.remove(beanName);
+			// 从二级缓存中移除
 			this.earlySingletonObjects.remove(beanName);
+			// 将beanName添加到registeredSingletons集合中，表示这个bean已经注册到了ioc容器中
 			this.registeredSingletons.add(beanName);
 		}
 	}
@@ -228,8 +232,11 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 							// 3. 三级缓存池中获取
 							ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 							if (singletonFactory != null) {
+								// 调用lambda表达式：getEarlyBeanReference方法
 								singletonObject = singletonFactory.getObject();
+								// 放到二级缓存中
 								this.earlySingletonObjects.put(beanName, singletonObject); // 二级缓存中放置的都是半成品对象
+								// 移除放在三级缓存中lambda表达式
 								this.singletonFactories.remove(beanName);
 							}
 						}
@@ -254,7 +261,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		Assert.notNull(beanName, "Bean name must not be null");
 		synchronized (this.singletonObjects) {
 
-			// 从单例缓存池中获取bean
+			// 从一级缓存中获取bean
 			Object singletonObject = this.singletonObjects.get(beanName);
 
 			if (singletonObject == null) {
@@ -267,8 +274,8 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					logger.debug("Creating shared instance of singleton bean '" + beanName + "'");
 
 				}
-				// 单例bean创建之前的回调
-				// 将beanName 添加到集合singletonsCurrentlyInCreation中
+				// 单例bean创建之前做的一些检测
+				// 将beanName 添加到集合singletonsCurrentlyInCreation中，表示beanName正在创建中....
 				beforeSingletonCreation(beanName);
 
 				boolean newSingleton = false;
@@ -278,7 +285,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 				}
 				try {
 
-					// ****** 实际上就是调用 createBean(beanName, mbd, args)方法创建bean
+					// ****** 实际上就是调用 createBean(beanName, mbd, args)方法创建bean ******
 					singletonObject = singletonFactory.getObject();
 
 					// 打个标识
@@ -303,10 +310,10 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					}
 
 					// 单例bean创建之后的回调函数
-					// 将beanName 从集合singletonsCurrentlyInCreation中移除
+					// 将beanName 从集合singletonsCurrentlyInCreation中移除, 意味着bean创建完成
 					afterSingletonCreation(beanName);
 				}
-				if (newSingleton) {
+				if (newSingleton) { //如果是个新对象
 					// 将创建的这个bean加入到一级缓存池中【单例缓存池】
 					addSingleton(beanName, singletonObject);
 				}

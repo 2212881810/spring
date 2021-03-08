@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="apple" class="qinfeng.zheng.methodOverride.lookup.Apple" scope="prototype"/>
+	<bean id="banana" class="qinfeng.zheng.methodOverride.lookup.Banana " scope="prototype"/>
+
+	<bean id="fruitPlate1" class="qinfeng.zheng.methodOverride.lookup.FruitPlate">
+		<lookup-method name="getFruit" bean="apple"/>
+	</bean>
+
+	<bean id="fruitPlate2" class="qinfeng.zheng.methodOverride.lookup.FruitPlate">
+		<lookup-method name="getFruit" bean="banana"/>
+	</bean>
+</beans>

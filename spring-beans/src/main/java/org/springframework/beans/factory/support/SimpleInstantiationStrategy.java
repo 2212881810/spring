@@ -60,13 +60,21 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 	@Override
 	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner) {
 		// Don't override the class with CGLIB if no overrides.
+		// beanDefinition中是否包含有MethodOverrides属性列表，
+		// 在整个spring中有两个标签会产生MethodOverrides，它们是lookup-method和replace-method,
+
+		// 没有MethodOverrides属性，直接实例化
 		if (!bd.hasMethodOverrides()) {
+			// 实例化对象的构造器
 			Constructor<?> constructorToUse;
 			synchronized (bd.constructorArgumentLock) {
 
+				// 查看bd对象里是否含有构造方法
 				constructorToUse = (Constructor<?>) bd.resolvedConstructorOrFactoryMethod;
 
+				// 如果没有
 				if (constructorToUse == null) {
+					// 从bd是获取beanClass
 					final Class<?> clazz = bd.getBeanClass();
 
 					if (clazz.isInterface()) {
@@ -78,9 +86,10 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 									(PrivilegedExceptionAction<Constructor<?>>) clazz::getDeclaredConstructor);
 						}
 						else {
-							// 通过反射的方式 ，获取构造器
+							// 获取默认的无参构造器
 							constructorToUse = clazz.getDeclaredConstructor();
 						}
+						// 获取到默认的无参构造器之后将其设置到bd的resolvedConstructorOrFactoryMethod属性中
 						bd.resolvedConstructorOrFactoryMethod = constructorToUse;
 					}
 					catch (Throwable ex) {
@@ -88,11 +97,12 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 					}
 				}
 			}
-			// 实例化bean
+			//通过反射生成具体的实例化对象
 			return BeanUtils.instantiateClass(constructorToUse);
 		}
 		else {
 			// Must generate CGLIB subclass.
+			// 必须生成一个cglib子类来实例化bean
 			return instantiateWithMethodInjection(bd, beanName, owner);
 		}
 	}
@@ -156,6 +166,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 			Method priorInvokedFactoryMethod = currentlyInvokedFactoryMethod.get();
 			try {
 				currentlyInvokedFactoryMethod.set(factoryMethod);
+				// 调用factory-method实例化对象
 				Object result = factoryMethod.invoke(factoryBean, args);
 				if (result == null) {
 					result = new NullBean();

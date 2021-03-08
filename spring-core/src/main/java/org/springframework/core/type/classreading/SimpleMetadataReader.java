@@ -60,7 +60,7 @@ final class SimpleMetadataReader implements MetadataReader {
 		finally {
 			is.close();
 		}
-
+		// 解析注解元数据，太底层
 		AnnotationMetadataReadingVisitor visitor = new AnnotationMetadataReadingVisitor(classLoader);
 		classReader.accept(visitor, ClassReader.SKIP_DEBUG);
 

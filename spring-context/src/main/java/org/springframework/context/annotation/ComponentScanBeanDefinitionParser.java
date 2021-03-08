@@ -92,7 +92,7 @@ public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 		ClassPathBeanDefinitionScanner scanner = configureScanner(parserContext, element);
 		// 扫包，会找出basePackage包下，所有受spring管理的bean
 		Set<BeanDefinitionHolder> beanDefinitions = scanner.doScan(basePackages);
-		// 注册， 这个方法非常重要
+		// 注册， 这个方法非常重要, 会通过AnnotationConfigUtils注册5个spring的内部类
 		registerComponents(parserContext.getReaderContext(), beanDefinitions, element);
 
 		return null;

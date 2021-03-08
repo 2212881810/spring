@@ -168,7 +168,7 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 			else {
 				// 调用FactoryBean的getObject方法创建Bean. spring默认的调用的，不需要用户自己去控制
 				object = factory.getObject();
-				logger.info("FactoryBean【"+factory.getClass()+"】 创建 " + object.getClass());
+//				logger.info("FactoryBean【"+factory.getClass()+"】 创建 " + object.getClass());
 			}
 		}
 		catch (FactoryBeanNotInitializedException ex) {

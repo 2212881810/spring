@@ -1,5 +1,6 @@
 package qinfeng.zheng.componentscan;
 
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 /**
