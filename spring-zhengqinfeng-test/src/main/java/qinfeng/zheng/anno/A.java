@@ -7,13 +7,13 @@ import org.springframework.stereotype.Component;
  * @Date 2021/2/28 22:26
  * @dec
  */
-@Component
+//@Component
 public class A {
-	@Component
-	class B {
-		@Component
-		class C{
-
-		}
-	}
+//	@Component
+//	class B {
+//		@Component
+//		class C{
+//
+//		}
+//	}
 }

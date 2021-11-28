@@ -7,6 +7,7 @@
 	<bean id="customer" class="qinfeng.zheng.selfEditor.Customer">
 		<property name="name" value="admin"></property>
 		<property name="address" value="四川省_成都市_武候区"/>
+
 	</bean>
 
 	<!--
@@ -21,6 +22,7 @@
 				<bean class="qinfeng.zheng.selfEditor.AddressPropertyEditorRegistrar"/>
 			</list>
 		</property>
+
 	</bean>
 
 

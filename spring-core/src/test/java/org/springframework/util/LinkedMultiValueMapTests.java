@@ -38,20 +38,27 @@ public class LinkedMultiValueMapTests {
 
 	@Test
 	public void add() {
+		// add方法会进行累加
 		map.add("key", "value1");
 		map.add("key", "value2");
 		assertEquals(1, map.size());
+
+
 		List<String> expected = new ArrayList<>(2);
 		expected.add("value1");
 		expected.add("value2");
+
 		assertEquals(expected, map.get("key"));
 	}
 
 	@Test
 	public void set() {
+		// set方法会进行覆盖
 		map.set("key", "value1");
 		map.set("key", "value2");
 		assertEquals(1, map.size());
+		System.out.println(map);
+		System.out.println(map.get("key"));
 		assertEquals(Collections.singletonList("value2"), map.get("key"));
 	}
 

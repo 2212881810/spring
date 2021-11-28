@@ -82,7 +82,9 @@ import org.springframework.web.context.support.StandardServletEnvironment;
 @SuppressWarnings("serial")
 public abstract class HttpServletBean extends HttpServlet implements EnvironmentCapable, EnvironmentAware {
 
-	/** Logger available to subclasses. */
+	/**
+	 * Logger available to subclasses.
+	 */
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	@Nullable
@@ -98,6 +100,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	 * from the constructor of a subclass.
 	 * <p>This method is only relevant in case of traditional initialization
 	 * driven by a ServletConfig instance.
+	 *
 	 * @param property name of the required property
 	 */
 	protected final void addRequiredProperty(String property) {
@@ -108,8 +111,9 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	 * Set the {@code Environment} that this servlet runs in.
 	 * <p>Any environment set here overrides the {@link StandardServletEnvironment}
 	 * provided by default.
+	 *
 	 * @throws IllegalArgumentException if environment is not assignable to
-	 * {@code ConfigurableEnvironment}
+	 *                                  {@code ConfigurableEnvironment}
 	 */
 	@Override
 	public void setEnvironment(Environment environment) {
@@ -142,23 +146,29 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	/**
 	 * Map config parameters onto bean properties of this servlet, and
 	 * invoke subclass initialization.
+	 *
 	 * @throws ServletException if bean properties are invalid (or required
-	 * properties are missing), or if subclass initialization fails.
+	 *                          properties are missing), or if subclass initialization fails.
 	 */
 	@Override
 	public final void init() throws ServletException {
 
 		// Set bean properties from init parameters.
+		// 初始化spring mvc的入口，这儿会拿到servlet的init参数
+		// 具体调用的这个方法是由tomcat完成的， 也就是说是由tomcat调用spring mvc(相当于一个servlet)的init方法
+		// 也就是tomcat会创建DispatcherServlet对象，然后就会执行servlet的生命周期，也就会调用这个init方法
+		// 将servlet配置中的init-param参数封装到pvs中
 		PropertyValues pvs = new ServletConfigPropertyValues(getServletConfig(), this.requiredProperties);
 		if (!pvs.isEmpty()) {
 			try {
+				// 将this【DispatcherServlet】对象转化为BeanWrapper对象 ，从而能以spring的方法将pvs注入到该beanWrapper中去
 				BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(this);
 				ResourceLoader resourceLoader = new ServletContextResourceLoader(getServletContext());
+				// 注册自定义属性编辑器，一旦有Resource类型的属性，就会使用ResourceEditor进行解析
 				bw.registerCustomEditor(Resource.class, new ResourceEditor(resourceLoader, getEnvironment()));
 				initBeanWrapper(bw);
 				bw.setPropertyValues(pvs, true);
-			}
-			catch (BeansException ex) {
+			} catch (BeansException ex) {
 				if (logger.isErrorEnabled()) {
 					logger.error("Failed to set bean properties on servlet '" + getServletName() + "'", ex);
 				}
@@ -167,6 +177,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 		}
 
 		// Let subclasses do whatever initialization they like.
+		// 模板方法，子类初始化的入口方法，查看org.springframework.web.servlet.FrameworkServlet.initServletBean
 		initServletBean();
 	}
 
@@ -174,6 +185,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	 * Initialize the BeanWrapper for this HttpServletBean,
 	 * possibly with custom editors.
 	 * <p>This default implementation is empty.
+	 *
 	 * @param bw the BeanWrapper to initialize
 	 * @throws BeansException if thrown by BeanWrapper methods
 	 * @see org.springframework.beans.BeanWrapper#registerCustomEditor
@@ -186,6 +198,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	 * All bean properties of this servlet will have been set before this
 	 * method is invoked.
 	 * <p>This default implementation is empty.
+	 *
 	 * @throws ServletException if subclass initialization fails
 	 */
 	protected void initServletBean() throws ServletException {
@@ -194,6 +207,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	/**
 	 * Overridden method that simply returns {@code null} when no
 	 * ServletConfig set yet.
+	 *
 	 * @see #getServletConfig()
 	 */
 	@Override
@@ -210,9 +224,10 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 
 		/**
 		 * Create new ServletConfigPropertyValues.
-		 * @param config the ServletConfig we'll use to take PropertyValues from
+		 *
+		 * @param config             the ServletConfig we'll use to take PropertyValues from
 		 * @param requiredProperties set of property names we need, where
-		 * we can't accept default values
+		 *                           we can't accept default values
 		 * @throws ServletException if any required properties are missing
 		 */
 		public ServletConfigPropertyValues(ServletConfig config, Set<String> requiredProperties)
@@ -235,8 +250,8 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 			if (!CollectionUtils.isEmpty(missingProps)) {
 				throw new ServletException(
 						"Initialization from ServletConfig for servlet '" + config.getServletName() +
-						"' failed; the following required properties were missing: " +
-						StringUtils.collectionToDelimitedString(missingProps, ", "));
+								"' failed; the following required properties were missing: " +
+								StringUtils.collectionToDelimitedString(missingProps, ", "));
 			}
 		}
 	}

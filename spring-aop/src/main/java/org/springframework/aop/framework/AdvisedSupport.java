@@ -480,8 +480,10 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 		MethodCacheKey cacheKey = new MethodCacheKey(method);
 		List<Object> cached = this.methodCache.get(cacheKey);
 		if (cached == null) {
-			cached = this.advisorChainFactory.getInterceptorsAndDynamicInterceptionAdvice(
-					this, method, targetClass);
+
+			// 此时还没有组建拦截器链，但是已经准备了链上的拦截器（MethodInterceptor和advice）
+			cached = this.advisorChainFactory.getInterceptorsAndDynamicInterceptionAdvice(this, method, targetClass);
+
 			this.methodCache.put(cacheKey, cached);
 		}
 		return cached;

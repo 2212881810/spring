@@ -455,7 +455,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		if (this.earlyApplicationEvents != null) {
 			this.earlyApplicationEvents.add(applicationEvent);
 		} else {
-			// 获取多播器来发布事件
+			// 获取多播器来发布spring容器刷新完毕这个事件  ContextRefreshedEvent
 			getApplicationEventMulticaster().multicastEvent(applicationEvent, eventType);
 		}
 
@@ -592,7 +592,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 
-			// 3. beanFactory的准确工作，对各种属性进行填充
+			// 3. beanFactory的准备工作，对各种属性进行填充
 			// 对beanFactory设置一些具体的属性值
 			prepareBeanFactory(beanFactory);
 
@@ -630,6 +630,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 				// Last step: publish corresponding event.、
 				//12. 完成刷新过程，通知生命周期处理器lifecycleProcessor刷新过程，同时发布ContextRefreshedEvent事件到监听器
+				// 也很重要
 				finishRefresh();
 			} catch (BeansException ex) {
 				if (logger.isWarnEnabled()) {
@@ -1056,6 +1057,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Publish the final event.
 		// AbstractApplicationContext发布ContextRefreshedEvent事件
+		// 这里很重要【***】 context容器刷新完毕事件
 		publishEvent(new ContextRefreshedEvent(this));
 
 		// Participate in LiveBeansView MBean, if active.

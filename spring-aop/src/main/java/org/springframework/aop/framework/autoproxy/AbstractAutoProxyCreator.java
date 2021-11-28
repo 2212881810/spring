@@ -256,6 +256,8 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 				return null;
 			}
 			if (isInfrastructureClass(beanClass) || shouldSkip(beanClass, beanName)) {
+				// 在通过getBean创建具体的Advisor实例（或者说是Advice实例）时，会进入到这个if条件。
+				// 因为它们满足isInfrastructureClass(beanClass)
 				this.advisedBeans.put(cacheKey, Boolean.FALSE);
 				return null;
 			}
@@ -300,6 +302,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 */
 	@Override
 	public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
+		// getEarlyBeanReference方法内部也是调用的warpIfNecessary这个方法
 		if (bean != null) {
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
 			if (this.earlyProxyReferences.remove(cacheKey) != bean) {
@@ -339,21 +342,29 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @return a proxy wrapping the bean, or the raw bean instance as-is
 	 */
 	protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
+		// 如果已经处理过了，直接返回
 		if (StringUtils.hasLength(beanName) && this.targetSourcedBeans.contains(beanName)) {
 			return bean;
 		}
+
+		// advisedBeans中缓存了已经进行代理的bean ,如果缓存中存在 ，则直接返回
 		if (Boolean.FALSE.equals(this.advisedBeans.get(cacheKey))) {
 			return bean;
 		}
+
+		// 通过isInfrastructureClass方法判断当前bean是否为spring系统自带的bean ,自带的bean是不用进行代理的;
+		// skip方法判断当前bean是否应该被略过
 		if (isInfrastructureClass(bean.getClass()) || shouldSkip(bean.getClass(), beanName)) {
 			this.advisedBeans.put(cacheKey, Boolean.FALSE);
 			return bean;
 		}
 
 		// Create proxy if we have advice.
+		// 获取当前bean的advisors或者advices
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
 
 		if (specificInterceptors != DO_NOT_PROXY) {  // 如果需要创建代理对象
+
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
 
 			// 创建动态代理对象
@@ -454,28 +465,38 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	protected Object createProxy(Class<?> beanClass, @Nullable String beanName,
 			@Nullable Object[] specificInterceptors, TargetSource targetSource) {
 
+		// 给bean定义设置暴露属性
 		if (this.beanFactory instanceof ConfigurableListableBeanFactory) {
 			AutoProxyUtils.exposeTargetClass((ConfigurableListableBeanFactory) this.beanFactory, beanName, beanClass);
 		}
 
+		// 创建代理工厂
 		ProxyFactory proxyFactory = new ProxyFactory();
+		// 获取当前类中的相关属性
 		proxyFactory.copyFrom(this);
 
+		// 判断当前是使用targetClass还是使用接口代理，检测 proxyTargetClass设置和preserveTargetClass
 		if (!proxyFactory.isProxyTargetClass()) {
+			// 判断是使用jdk动态代理，还是cglib动态代理 ， preserveTargetClass
 			if (shouldProxyTargetClass(beanClass, beanName)) {
 				proxyFactory.setProxyTargetClass(true);
 			}
 			else {
+				// 添加代理接口
 				evaluateProxyInterfaces(beanClass, proxyFactory);
 			}
 		}
 
 		Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
+		// 通知advisor集合
 		proxyFactory.addAdvisors(advisors);
+		//设置要代理的类
 		proxyFactory.setTargetSource(targetSource);
+		// 自定义代理实现
 		customizeProxyFactory(proxyFactory);
-
+		// 用于控制代理配置之后，还是否允许被修改，默认false
 		proxyFactory.setFrozen(this.freezeProxy);
+
 		if (advisorsPreFiltered()) {
 			proxyFactory.setPreFiltered(true);
 		}

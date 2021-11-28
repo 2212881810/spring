@@ -228,6 +228,7 @@ public abstract class AnnotationUtils {
 	 */
 	@Nullable
 	public static <A extends Annotation> A getAnnotation(Method method, Class<A> annotationType) {
+		// 桥接方式也可以获取
 		Method resolvedMethod = BridgeMethodResolver.findBridgedMethod(method);
 		return getAnnotation((AnnotatedElement) resolvedMethod, annotationType);
 	}

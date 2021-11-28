@@ -197,23 +197,33 @@ class CglibAopProxy implements AopProxy, Serializable {
 				}
 			}
 			enhancer.setSuperclass(proxySuperClass);
+			// spring会提供两个默认的接口类，SpringProxy, Advised
 			enhancer.setInterfaces(AopProxyUtils.completeProxiedInterfaces(this.advised));
+			//代理类的命名策略
 			enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
 			enhancer.setStrategy(new ClassLoaderAwareUndeclaredThrowableStrategy(classLoader));
 
+			// 获取所有回调接口
 			Callback[] callbacks = getCallbacks(rootClass);
+
+			// 获取回调接口的Class对象
 			Class<?>[] types = new Class<?>[callbacks.length];
 			for (int x = 0; x < types.length; x++) {
 				types[x] = callbacks[x].getClass();
 			}
 			// fixedInterceptorMap only populated at this point, after getCallbacks call above
+
+			// 设置回调过滤器
 			enhancer.setCallbackFilter(new ProxyCallbackFilter(
 					this.advised.getConfigurationOnlyCopy(), this.fixedInterceptorMap, this.fixedInterceptorOffset));
 			enhancer.setCallbackTypes(types);
 
 			// Generate the proxy class and create a proxy instance.
-			// 子类进行了覆写
+			// 通过Enhancer创建代理对象，并设置回调
 			return createProxyClassAndInstance(enhancer, callbacks);
+
+
+
 		} catch (CodeGenerationException | IllegalArgumentException ex) {
 			throw new AopConfigException("Could not generate CGLIB subclass of " + this.advised.getTargetClass() +
 					": Common causes of this problem include using a final class or a non-visible class",
@@ -290,11 +300,14 @@ class CglibAopProxy implements AopProxy, Serializable {
 
 	private Callback[] getCallbacks(Class<?> rootClass) throws Exception {
 		// Parameters used for optimization choices...
+		// 对于expose-proxy属性的设置，是否暴露当前对象为threadLocal模式，即在当前上下文中是否可用
 		boolean exposeProxy = this.advised.isExposeProxy();
+		// advised 是ProxyConfig实例对象，封装了一些aop配置相关的数据
 		boolean isFrozen = this.advised.isFrozen();
 		boolean isStatic = this.advised.getTargetSource().isStatic();
 
 		// Choose an "aop" interceptor (used for AOP calls).
+
 		Callback aopInterceptor = new DynamicAdvisedInterceptor(this.advised);
 
 		// Choose a "straight to target" interceptor. (used for calls that are
@@ -316,6 +329,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 				new StaticDispatcher(this.advised.getTargetSource().getTarget()) : new SerializableNoOp());
 
 		Callback[] mainCallbacks = new Callback[]{
+				// 将拦截器链加入到callback回调中
 				aopInterceptor,  // for normal advice
 				targetInterceptor,  // invoke target without considering advice, if optimized
 				new SerializableNoOp(),  // no override for methods mapped to this
@@ -650,7 +664,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 
 	/**
 	 * General purpose AOP callback. Used when the target is dynamic or when the
-	 * proxy is not frozen.
+	 * proxy is not frozen.  cglib拦截器方法(回调callback方法)
 	 */
 	private static class DynamicAdvisedInterceptor implements MethodInterceptor, Serializable {
 
@@ -676,6 +690,8 @@ class CglibAopProxy implements AopProxy, Serializable {
 				// Get as late as possible to minimize the time we "own" the target, in case it comes from a pool...
 				target = targetSource.getTarget();
 				Class<?> targetClass = (target != null ? target.getClass() : null);
+
+				// 重要方法~~~~~~~~~~~， 准确好了链上对象，但是还没有组建好链
 				List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
 				Object retVal;
 				// Check whether we only have one InvokerInterceptor: that is,
@@ -686,9 +702,13 @@ class CglibAopProxy implements AopProxy, Serializable {
 					// it does nothing but a reflective operation on the target, and no hot
 					// swapping or fancy proxying.
 					Object[] argsToUse = AopProxyUtils.adaptArgumentsIfNecessary(method, args);
+					// 如果拦截链为空，直接invoke target的目标方法
 					retVal = methodProxy.invoke(target, argsToUse);
 				} else {
+
+
 					// We need to create a method invocation...
+					// 通过cglibMethodInvocation来启动advice通知。 ！！！！！！！！！！！重要方法
 					retVal = new CglibMethodInvocation(proxy, target, method, args, targetClass, chain, methodProxy).proceed();
 				}
 				retVal = processReturnType(proxy, target, method, retVal);

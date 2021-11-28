@@ -909,7 +909,7 @@ abstract class AbstractMakeModifiable {
 		}
 	}
 
-	@Before(value="execution(void set*(*)) && this(modifiable) && args(newValue)", argNames="modifiable,newValue")
+	//@Before(value="execution(void set*(*)) && this(modifiable) && args(newValue)", argNames="modifiable,newValue")
 	public void recordModificationIfSetterArgumentDiffersFromOldValue(
 			JoinPoint jp, MutableModifiable mixin, Object newValue) {
 

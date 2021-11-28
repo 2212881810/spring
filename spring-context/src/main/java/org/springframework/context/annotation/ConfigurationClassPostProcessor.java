@@ -335,6 +335,8 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		Set<ConfigurationClass> alreadyParsed = new HashSet<>(configCandidates.size());
 		do {
 			//开始解析所有的配置候选类集合
+			// 解析带有@Controller,@Import, @importResource ,@ComponentScan，
+			// ComponentScans ,@Bean 的BeanDefinition
 			parser.parse(candidates);
 			// 将解析完的Configuration配置类进行校验， 1. 配置类不能是final类， @Bean方法必须可以重写以支持cglib
 			parser.validate();
@@ -345,13 +347,14 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			configClasses.removeAll(alreadyParsed);
 
 			// Read the model and create bean definitions based on its content
+			// 如果读取器为空，就创建填充好了 ConfigurationClass实例的读取器
 			if (this.reader == null) {
 				this.reader = new ConfigurationClassBeanDefinitionReader(
 						registry, this.sourceExtractor, this.resourceLoader, this.environment,
 						this.importBeanNameGenerator, parser.getImportRegistry());
 			}
 
-			// 注册beanDefinition
+			// 核心方法，将完全填充好的ConfigurationClass实例转化为BeanDefinition,然后注册到IOC
 			this.reader.loadBeanDefinitions(configClasses);
 			alreadyParsed.addAll(configClasses);
 

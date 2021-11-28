@@ -280,6 +280,7 @@ public abstract class CommonsFileUploadSupport {
 			}
 			else {
 				// multipart file field
+				// 如果是文件类型
 				CommonsMultipartFile file = createMultipartFile(fileItem);
 				multipartFiles.add(file.getName(), file);
 				LogFormatUtils.traceDebug(logger, traceOn ->
@@ -289,6 +290,7 @@ public abstract class CommonsFileUploadSupport {
 				);
 			}
 		}
+		// 返回一个MultipartParsingResult类型的request
 		return new MultipartParsingResult(multipartFiles, multipartParameters, multipartParameterContentTypes);
 	}
 

@@ -41,7 +41,7 @@ public interface BeanDefinitionRegistryPostProcessor extends BeanFactoryPostProc
 	 * @throws org.springframework.beans.BeansException in case of errors
 	 *
 	 *
-	 * BeanDefinitionRegistry 与BeanDefinition有关，提供了一些增删改查的操作
+	 * BeanDefinitionRegistry 与 BeanDefinition有关，提供了一些增删改查的操作
 	 */
 	void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException;
 

@@ -285,6 +285,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		// This is currently strictly internal and not meant to be customized
 		// by application developers.
 		try {
+			// 加载DispatcherServlet.properties文件中的内容
 			ClassPathResource resource = new ClassPathResource(DEFAULT_STRATEGIES_PATH, DispatcherServlet.class);
 			defaultStrategies = PropertiesLoaderUtils.loadProperties(resource);
 		}
@@ -489,9 +490,12 @@ public class DispatcherServlet extends FrameworkServlet {
 
 	/**
 	 * This implementation calls {@link #initStrategies}.
+	 *
+	 * 通过ContextRefreshedEvent事件调到这个方法的
 	 */
 	@Override
 	protected void onRefresh(ApplicationContext context) {
+		// 初始化spring mvc的九大组件
 		initStrategies(context);
 	}
 
@@ -500,9 +504,14 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
 	protected void initStrategies(ApplicationContext context) {
+		// 初始化MultipartResolver，主要用来做文件上传功能的，默认为null
 		initMultipartResolver(context);
+		// 初始化LocalResolver,主要用于处理国际化配置
+		// 基于URL参数配置（AcceptHeaderLocalResolver）,基于session配置SessionLocalResolver,基于cookie配置CookieLocaleResolver
 		initLocaleResolver(context);
+		// 初始化主题处理器
 		initThemeResolver(context);
+
 		initHandlerMappings(context);
 		initHandlerAdapters(context);
 		initHandlerExceptionResolvers(context);
@@ -930,6 +939,10 @@ public class DispatcherServlet extends FrameworkServlet {
 		request.setAttribute(THEME_RESOLVER_ATTRIBUTE, this.themeResolver);
 		request.setAttribute(THEME_SOURCE_ATTRIBUTE, getThemeSource());
 
+
+		// FlashMap相关的设置，主要用于Redirect转发时参数传递，
+		// 此处有一个应用场景：如果post请求提交表单，提交完了之后redirect到一个显示订单的页面，此时需要一些订单的信息，
+		// 但redirect本身并没有提交参数的功能，只能通过url后面携带，而url不安全，此时就可以使用flashMap来传递参数
 		if (this.flashMapManager != null) {
 			FlashMap inputFlashMap = this.flashMapManager.retrieveAndUpdate(request, response);
 			if (inputFlashMap != null) {
@@ -940,6 +953,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		try {
+			// 请求分发工作
 			doDispatch(request, response);
 		}
 		finally {
@@ -998,7 +1012,9 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @throws Exception in case of any kind of processing failure
 	 */
 	protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		// 定义了一堆变量
 		HttpServletRequest processedRequest = request;
+		// 请求处理链，包括对应的处理器和拦截器
 		HandlerExecutionChain mappedHandler = null;
 		boolean multipartRequestParsed = false;
 
@@ -1009,41 +1025,58 @@ public class DispatcherServlet extends FrameworkServlet {
 			Exception dispatchException = null;
 
 			try {
+				// 检测是否是上传文件请求
 				processedRequest = checkMultipart(request);
+				// 设置上传请求标志位
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
+				// [****]
 				mappedHandler = getHandler(processedRequest);
+
+
+				// 如果找不到对应的Controller【Handler】来处理当请求，返回404
 				if (mappedHandler == null) {
 					noHandlerFound(processedRequest, response);
 					return;
 				}
 
 				// Determine handler adapter for the current request.
+				// 获取当前handler对应的适配器
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
 				String method = request.getMethod();
 				boolean isGet = "GET".equals(method);
-				if (isGet || "HEAD".equals(method)) {
+				if (isGet || "HEAD".equals(method)) {  // head请求获取头信息
+					//获取请求中服务器端最后修改的时间
 					long lastModified = ha.getLastModified(request, mappedHandler.getHandler());
+
 					if (new ServletWebRequest(request, response).checkNotModified(lastModified) && isGet) {
-						return;
+						return;// 如果资源没有修改，直接返回请求 304
 					}
 				}
 
+				//  HandlerInterceptor 拦截器的前置处理
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
 
+
+
 				// Actually invoke the handler.
+				// 执行具体的业务逻辑
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
+
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
 					return;
 				}
 
+
+
 				applyDefaultViewName(processedRequest, mv);
+				// 拦截器的后置处理
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
@@ -1054,9 +1087,11 @@ public class DispatcherServlet extends FrameworkServlet {
 				// making them available for @ExceptionHandler methods and other scenarios.
 				dispatchException = new NestedServletException("Handler dispatch failed", err);
 			}
+			//处理分发结果，包括处理异常，渲染页面，触发Interceptor的afterCompletion
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
 		catch (Exception ex) {
+			// 判断是否执行异步请求
 			triggerAfterCompletion(processedRequest, response, mappedHandler, ex);
 		}
 		catch (Throwable err) {
@@ -1073,6 +1108,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			else {
 				// Clean up any resources used by a multipart request.
 				if (multipartRequestParsed) {
+					//删除文件上传请求的资源
 					cleanupMultipart(processedRequest);
 				}
 			}
@@ -1162,6 +1198,8 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @see MultipartResolver#resolveMultipart
 	 */
 	protected HttpServletRequest checkMultipart(HttpServletRequest request) throws MultipartException {
+		// isMultipart方法底层调用了common-fileUpload中的功能，对文件content-type进行验证，判断是不是文件上传请求
+		// multipartResolver 需要定义
 		if (this.multipartResolver != null && this.multipartResolver.isMultipart(request)) {
 			if (WebUtils.getNativeRequest(request, MultipartHttpServletRequest.class) != null) {
 				if (request.getDispatcherType().equals(DispatcherType.REQUEST)) {
@@ -1174,6 +1212,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			}
 			else {
 				try {
+					// 将HttpServletRequest 请求封装成MultiPartHttpServletRequest对象 ，解析请求里面的参数和文件
 					return this.multipartResolver.resolveMultipart(request);
 				}
 				catch (MultipartException ex) {

@@ -159,10 +159,14 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 	@Nullable
 	public Object proceed() throws Throwable {
 		// We start with an index of -1 and increment early.
+
+		// currentInterceptorIndex: 当前索引
 		if (this.currentInterceptorIndex == this.interceptorsAndDynamicMethodMatchers.size() - 1) {
+			// 执行目标方法
 			return invokeJoinpoint();
 		}
 
+		// 获取要执行的拦截器，沿着定义好的interceptorsAndDynamicMethodMatchers链进行处理
 		Object interceptorOrInterceptionAdvice =
 				this.interceptorsAndDynamicMethodMatchers.get(++this.currentInterceptorIndex);
 		if (interceptorOrInterceptionAdvice instanceof InterceptorAndDynamicMethodMatcher) {
@@ -183,6 +187,7 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 		else {
 			// It's an interceptor, so we just invoke it: The pointcut will have
 			// been evaluated statically before this object was constructed.
+			// 普通拦截器，直接调用拦截器。 this : 指ReflectiveMethodInvocation: public java.lang.Integer qinfeng.zheng.aop.xml.service.MyCalculator.add(java.lang.Integer,java.lang.Integer) throws java.lang.NoSuchMethodException; target is of class [qinfeng.zheng.aop.xml.service.MyCalculator]
 			return ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(this);
 		}
 	}

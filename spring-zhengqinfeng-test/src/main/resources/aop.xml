@@ -9,7 +9,8 @@
 ">
     <bean id="logUtil" class="qinfeng.zheng.aop.xml.util.LogUtil"></bean>
     <bean id="myCalculator" class="qinfeng.zheng.aop.xml.service.MyCalculator" ></bean>
-    <aop:config>
+
+	<aop:config>
         <aop:aspect ref="logUtil">
             <aop:pointcut id="myPoint" expression="execution( Integer qinfeng.zheng.aop.xml.service.MyCalculator.*  (..))"/>
             <aop:around method="around" pointcut-ref="myPoint"></aop:around>

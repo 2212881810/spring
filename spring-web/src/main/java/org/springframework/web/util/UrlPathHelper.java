@@ -260,8 +260,11 @@ public class UrlPathHelper {
 	 * @see #getLookupPathForRequest
 	 */
 	public String getPathWithinApplication(HttpServletRequest request) {
+		// 上下文件路径 就是项目名称 ， /mvc
 		String contextPath = getContextPath(request);
+		// 项目名称 + 请求名称  ，/mvc/hello
 		String requestUri = getRequestUri(request);
+		// /hello
 		String path = getRemainingPath(requestUri, contextPath, true);
 		if (path != null) {
 			// Normal case: URI contains context path.

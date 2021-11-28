@@ -95,6 +95,13 @@ public class AspectJAwareAdvisorAutoProxyCreator extends AbstractAdvisorAutoProx
 		AspectJProxyUtils.makeAdvisorChainAspectJCapableIfNecessary(candidateAdvisors);
 	}
 
+
+	/**
+	 * 找出Aspect 切面和解析通知器的方法，通知器Advisor封装了通知Advice实例
+	 * @param beanClass the class of the bean
+	 * @param beanName the name of the bean
+	 * @return
+	 */
 	@Override
 	protected boolean shouldSkip(Class<?> beanClass, String beanName) {
 		// TODO: Consider optimization by caching the list of the aspect names

@@ -128,6 +128,7 @@ public class CommonsMultipartResolver extends CommonsFileUploadSupport
 	@Override
 	public MultipartHttpServletRequest resolveMultipart(final HttpServletRequest request) throws MultipartException {
 		Assert.notNull(request, "Request must not be null");
+		// 懒加载
 		if (this.resolveLazily) {
 			return new DefaultMultipartHttpServletRequest(request) {
 				@Override
@@ -140,6 +141,7 @@ public class CommonsMultipartResolver extends CommonsFileUploadSupport
 			};
 		}
 		else {
+			// 解析请求
 			MultipartParsingResult parsingResult = parseRequest(request);
 			return new DefaultMultipartHttpServletRequest(request, parsingResult.getMultipartFiles(),
 					parsingResult.getMultipartParameters(), parsingResult.getMultipartParameterContentTypes());
@@ -153,9 +155,12 @@ public class CommonsMultipartResolver extends CommonsFileUploadSupport
 	 * @throws MultipartException if multipart resolution failed.
 	 */
 	protected MultipartParsingResult parseRequest(HttpServletRequest request) throws MultipartException {
+		// 请求编码
 		String encoding = determineEncoding(request);
+		// common包中提供的文件上传工具类
 		FileUpload fileUpload = prepareFileUpload(encoding);
 		try {
+			// 对请求中Multipart进行解析
 			List<FileItem> fileItems = ((ServletFileUpload) fileUpload).parseRequest(request);
 			return parseFileItems(fileItems, encoding);
 		}

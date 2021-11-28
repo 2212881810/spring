@@ -267,7 +267,7 @@ class ConfigBeanDefinitionParser implements BeanDefinitionParser {
 			parserContext.pushContainingComponent(aspectComponentDefinition);
 
 
-			// 解析<aop:pointcut>标签信息，并后注册到beanFactory
+			// 解析<aop:pointcut>标签信息，然后注册到beanFactory
 			List<Element> pointcuts = DomUtils.getChildElementsByTagName(aspectElement, POINTCUT);
 			for (Element pointcutElement : pointcuts) {
 				// 解析pointcut标签

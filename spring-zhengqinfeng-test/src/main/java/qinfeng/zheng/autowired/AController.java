@@ -12,4 +12,9 @@ import org.springframework.stereotype.Controller;
 public class AController {
 	@Autowired
 	private AService aService;
+
+	public AService getaService() {
+		System.out.println(this.aService);
+		return aService;
+	}
 }

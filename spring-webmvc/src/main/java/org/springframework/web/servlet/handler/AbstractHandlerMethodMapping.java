@@ -360,7 +360,8 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 */
 	@Override
 	protected HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
-		String lookupPath = getUrlPathHelper().getLookupPathForRequest(request);
+		// 获取一个请求path的帮助类，然后通过这个帮助类去找到请求request真的path
+		String lookupPath = getUrlPathHelper().getLookupPathForRequest(request);  // /hello
 		this.mappingRegistry.acquireReadLock();
 		try {
 			HandlerMethod handlerMethod = lookupHandlerMethod(lookupPath, request);
@@ -580,29 +581,45 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			this.readWriteLock.readLock().unlock();
 		}
 
+		/**
+		 * 注册
+		 * @param mapping  ： RequestMappingInfo 对象，每个Controller都会解析成一个此对象，
+		 * @param handler  ： 就是传说中的Controller
+		 * @param method   : 就是Controller中的方法
+		 */
 		public void register(T mapping, Object handler, Method method) {
 			this.readWriteLock.writeLock().lock();
 			try {
+				// 1. 将handler中的每个method转换成HandlerMethod实例对象
 				HandlerMethod handlerMethod = createHandlerMethod(handler, method);
+				// 2. 检测
 				assertUniqueMethodMapping(handlerMethod, mapping);
+				// 3. 保存映射关系
 				this.mappingLookup.put(mapping, handlerMethod);
 
+				// 4. 从requestMappingInfo中获取所有的请求url
 				List<String> directUrls = getDirectUrls(mapping);
+
 				for (String url : directUrls) {
+					// 5. 保存url与requestMappingInfo的映射关系
 					this.urlLookup.add(url, mapping);
 				}
 
 				String name = null;
 				if (getNamingStrategy() != null) {
+					// 6. 获取Controller(Handler的名称策略)
 					name = getNamingStrategy().getName(handlerMethod, mapping);
+					// 保存类名#方法与handlerMethod之间的映射关系
 					addMappingName(name, handlerMethod);
 				}
-
+				// 7.保存每个方法（HandlerMethod）与跨域配置的映射关系
 				CorsConfiguration corsConfig = initCorsConfiguration(handler, method, mapping);
 				if (corsConfig != null) {
 					this.corsLookup.put(handlerMethod, corsConfig);
 				}
 
+				// 8. 通过MappingRegistration来封装requestMappingInfo,handlerMethod,url ,方法名称
+				// 同时缓存requestMappingInfo与MappingRegistration之间的映射关系
 				this.registry.put(mapping, new MappingRegistration<>(mapping, handlerMethod, directUrls, name));
 			}
 			finally {

@@ -110,8 +110,11 @@ class BeanDefinitionValueResolver {
 			return resolveReference(argName, ref);
 		}
 		else if (value instanceof RuntimeBeanNameReference) {
+			// 从value 中获取beanName
 			String refName = ((RuntimeBeanNameReference) value).getBeanName();
+			// 对refName进行解析 ，然后重新赋值给refName
 			refName = String.valueOf(doEvaluate(refName));
+			// 如果beanFactory中不包含refName的beanDefinition或外部注入的singleton实例
 			if (!this.beanFactory.containsBean(refName)) {
 				throw new BeanDefinitionStoreException(
 						"Invalid bean name '" + refName + "' in bean reference for " + argName);
@@ -152,6 +155,7 @@ class BeanDefinitionValueResolver {
 					elementType = Object.class;
 				}
 			}
+
 			return resolveManagedArray(argName, (List<?>) value, elementType);
 		}
 		else if (value instanceof ManagedList) {

@@ -118,7 +118,10 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * initializing a fresh bean factory for the next phase of the context's lifecycle.
 	 */
 	@Override
-	protected final void refreshBeanFactory() throws BeansException {
+	protected final void
+
+
+	refreshBeanFactory() throws BeansException {
 		// 如果存在BeanFactory，就将其销毁
 		if (hasBeanFactory()) {
 			destroyBeans();

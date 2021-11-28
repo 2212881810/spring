@@ -61,9 +61,11 @@ public final class BridgeMethodResolver {
 	 * if no more specific one could be found)
 	 */
 	public static Method findBridgedMethod(Method bridgeMethod) {
+		// 如果不是桥接方法，直接返回，不用进行额外的处理
 		if (!bridgeMethod.isBridge()) {
 			return bridgeMethod;
 		}
+
 
 		// Gather all methods with matching name and parameter size.
 		List<Method> candidateMethods = new ArrayList<>();

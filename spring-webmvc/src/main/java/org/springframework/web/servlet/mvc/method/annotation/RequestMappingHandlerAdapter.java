@@ -774,8 +774,9 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	@Override
 	protected ModelAndView handleInternal(HttpServletRequest request,
 			HttpServletResponse response, HandlerMethod handlerMethod) throws Exception {
-
+		// 定义了一个对象
 		ModelAndView mav;
+		// 校验请求（HttpMethod 和Session）
 		checkRequest(request);
 
 		// Execute invokeHandlerMethod in synchronized block if required.
@@ -849,24 +850,43 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	protected ModelAndView invokeHandlerMethod(HttpServletRequest request,
 			HttpServletResponse response, HandlerMethod handlerMethod) throws Exception {
 
+		// request和response绑在一起，方法传参，可以这样理解吧
 		ServletWebRequest webRequest = new ServletWebRequest(request, response);
+
 		try {
+			// 创建 WebDataBinderFactory对象，此对象用来创建WebDataBinder对象，进行参数绑定
+			// 实现参数跟String之间的类型转换，ArgumentResolver在进行参数解析的过程中会用到WebDataBinder
 			WebDataBinderFactory binderFactory = getDataBinderFactory(handlerMethod);
+
+			// 创建 ModelFactory 对象，此对象主要用于处理model。 主要有两个作用
+			// 1. 在处理器具体处理之前对model进行初始化操作
+			// 2. 在处理完请求之后对model参数进行更新
 			ModelFactory modelFactory = getModelFactory(handlerMethod, binderFactory);
 
+			// 创建ServletInvocableHandlerMethod对象, 并设置其相关属性，实际的请求处理就是通过此对象来完成的
+			// 这里并没有调用handler中的方法，而是创建出这样一个对象 ，再通过这个对象去调用handler中的方法
 			ServletInvocableHandlerMethod invocableMethod = createInvocableHandlerMethod(handlerMethod);
+
 			if (this.argumentResolvers != null) {
+				// 将所有的参数解析器设置到invocableMethod对象中，后面好用
 				invocableMethod.setHandlerMethodArgumentResolvers(this.argumentResolvers);
 			}
+
 			if (this.returnValueHandlers != null) {
+				// 返回值处理器
 				invocableMethod.setHandlerMethodReturnValueHandlers(this.returnValueHandlers);
 			}
+
 			invocableMethod.setDataBinderFactory(binderFactory);
 			invocableMethod.setParameterNameDiscoverer(this.parameterNameDiscoverer);
 
+			// 创建一个ModelAndView容器，然后就可以通过这个容器来获取ModelAndView对象了
 			ModelAndViewContainer mavContainer = new ModelAndViewContainer();
+			// 容器设置flashMap属性， flashMap用于重定向参数设置
 			mavContainer.addAllAttributes(RequestContextUtils.getInputFlashMap(request));
+			// 使用modelFactory将sessionAttributes和注解@ModelAttribute的方法的参数设置到model中
 			modelFactory.initModel(webRequest, mavContainer, invocableMethod);
+			// 根据配置对ignoreDefaultModelOnRedirect进行设置
 			mavContainer.setIgnoreDefaultModelOnRedirect(this.ignoreDefaultModelOnRedirect);
 
 			AsyncWebRequest asyncWebRequest = WebAsyncUtils.createAsyncWebRequest(request, response);
@@ -889,6 +909,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 				invocableMethod = invocableMethod.wrapConcurrentResult(result);
 			}
 
+			// 执行并调用handler中的方法
 			invocableMethod.invokeAndHandle(webRequest, mavContainer);
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				return null;

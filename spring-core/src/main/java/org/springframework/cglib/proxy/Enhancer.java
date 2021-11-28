@@ -560,7 +560,9 @@ public class Enhancer extends AbstractClassGenerator {
 	}
 
 	private Object createHelper() {
+		// 前置验证
 		preValidate();
+
 		Object key = KEY_FACTORY.newInstance((superclass != null) ? superclass.getName() : null,
 				ReflectUtils.getNames(interfaces),
 				filter == ALL_ZERO ? null : new WeakCacheKey<CallbackFilter>(filter),
@@ -569,6 +571,8 @@ public class Enhancer extends AbstractClassGenerator {
 				interceptDuringConstruction,
 				serialVersionUID);
 		this.currentKey = key;
+
+		// 创建目标类的代理类
 		Object result = super.create(key);
 		return result;
 	}

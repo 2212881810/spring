@@ -31,6 +31,12 @@ import org.springframework.util.Assert;
  * @author Adrian Colyer
  * @author Juergen Hoeller
  * @since 2.0
+ *
+ *
+ *   advisor 包含  advice  , advice 包含 Method aspectJBeforeAdviceMethod, AspectJExpressionPointcut pointcut, AspectInstanceFactory aif
+ *
+ *
+ *
  */
 public class AspectJPointcutAdvisor implements PointcutAdvisor, Ordered {
 

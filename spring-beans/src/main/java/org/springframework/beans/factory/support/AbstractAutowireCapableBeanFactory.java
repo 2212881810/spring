@@ -525,6 +525,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
 			// 给BeanPostProcessors一个机会，返回代理对象去替换目标bean实例
 			// 如果这里能够创建bean代理成功，那么就不会走后面的doCreateBean方法了， getBean流程走到这儿就成功了！！！！
+			// 重要方法节点！！！！！！！！！！！！！
+			// 如果有aop，会在这儿生成具体的advisor
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			if (bean != null) {
 				return bean;
@@ -569,7 +571,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	protected Object doCreateBean(String beanName, RootBeanDefinition mbd, @Nullable Object[] args)
 			throws BeanCreationException {
 
-		// Instantiate the bean. 实例化bean
+		// Instantiate the bean. 实例化bean, 实现PropertyEditorRegistry, TypeConverter两个重要的接口
 		BeanWrapper instanceWrapper = null;
 
 		if (mbd.isSingleton()) {
@@ -595,7 +597,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (!mbd.postProcessed) {
 				try {
 					// MergedBeanDefinitionPostProcessor 后置处理器修改合并的bean定义
-					// 很重要,超级重要！！！！： 处理了@PostConstrcut注解 、@PreDestroy 、 @Resource,@Autowired
+					// 很重要,超级重要！！！！： 处理了@PostConstrcut注解 、@PreDestroy 、 @Resource; @Autowired、@Value
 					applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);
 				} catch (Throwable ex) {
 					throw new BeanCreationException(mbd.getResourceDescription(), beanName,
@@ -1204,6 +1206,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @see #instantiateUsingFactoryMethod
 	 * @see #autowireConstructor
 	 * @see #instantiateBean
+	 *
+	 *
+	 * 创建对象的方式： 1. suppier ; 2 , factory methdo ; 3. 通过构造器来注入 ；4，
 	 */
 	protected BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbd, @Nullable Object[] args) {
 		// Make sure bean class is actually resolved at this point.
@@ -1233,6 +1238,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// 在使用构造器创建实例后，spring会将解析过后确定下来的构造器或方法保存在缓存中，避免再次创建相同bean时，再来解析一次。
 		// 标记，防止重复创建同一个bean
 		boolean resolved = false;
+
 		// 是否需要自动装配
 		boolean autowireNecessary = false;
 		// 如果没有参数
@@ -1240,7 +1246,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			synchronized (mbd.constructorArgumentLock) {
 				// 因为一个类可能有多个构造函数 ，所有需要根据配置文件中配置的参数或者传入的参数来确定最终使用的构造器
 				// 因为判断过程会进行比较，所有spring会将解析确定好的构造器缓存到BeanDefinition中的resolvedConstructorOrFactoryMethod字段中
-				// 在下次创建相同对象时，直接从RootBeanDefiniton中的属性resolvedConstructorOrFactoryMethod缓存中获取值，避免再次解析
+				// 在下次创建相同对象时，直接从RootBeanDefinition中的属性resolvedConstructorOrFactoryMethod缓存中获取值，避免再次解析
 				// 第1次doGetBean时肯定为null ,但是完成第1次解析之后(org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(org.springframework.beans.factory.support.RootBeanDefinition, java.lang.String, org.springframework.beans.factory.BeanFactory))，
 				// 会将解析好的构造器缓存到mbd的resolvedConstructorOrFactoryMethod属性中，之后再getBean(多例情况下)，就会进入到下面的if分支中去了
 				if (mbd.resolvedConstructorOrFactoryMethod != null) {
@@ -1253,7 +1259,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (resolved) {
 			// 使用有参构造器的情况
 			if (autowireNecessary) {
-				// 构造器自动注入
+				// 使用自动注入的构造器来生成实例对象  ：就是那种在xml配置 	<constructor-arg>标签的情况
 				return autowireConstructor(beanName, mbd, null, null);
 			} else {
 				// 使用默认构造器函数
@@ -1391,6 +1397,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}
 			// 包装成beanWrapper,这个beanWrapper中封装了类型转换器TypeConverter、属性编辑器PropertyEditorRegistry
 			BeanWrapper bw = new BeanWrapperImpl(beanInstance);
+			// bean包装类的初始化操作
 			initBeanWrapper(bw);
 			return bw;
 		} catch (Throwable ex) {
@@ -1463,6 +1470,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// to support styles of field injection.
 		// 给任何实现了InstantiationAwareBeanPostProcessor 的子类一个机会在属性填充之前去修改bean的状态。 可以被用来支持类型字段的注入
 		// synthetic , 一般与aop相关，设置了pointCut或者Advice 配置才会 是true
+		// 很重要！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
 		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				if (bp instanceof InstantiationAwareBeanPostProcessor) {
@@ -1841,6 +1849,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Set our (possibly massaged) deep copy.
 		try {
+			//赋值操作
 			bw.setPropertyValues(new MutablePropertyValues(deepCopy));
 		} catch (BeansException ex) {
 			throw new BeanCreationException(
@@ -1899,6 +1908,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (mbd == null || !mbd.isSynthetic()) {
 			//BPP#before 方法内部会 调用Aware接口实现(6种实现)   ApplicationContextAwareProcessor实现的
 			// @PostConstruct注解方法会在这里进行回调
+			// 通过ApplicationContextAwareProcessor 这个接口去调用6种Aware
 			wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
 		}
 
@@ -1912,7 +1922,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 		if (mbd == null || !mbd.isSynthetic()) {
 
-			//BPP#after
+			//BPP#after. aop相关生成代理对象 ，  通过AbstractAutoProxyCreator 这个类来完成
 			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);
 		}
 

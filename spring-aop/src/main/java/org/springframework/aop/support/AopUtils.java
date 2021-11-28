@@ -222,6 +222,12 @@ public abstract class AopUtils {
 	 */
 	public static boolean canApply(Pointcut pc, Class<?> targetClass, boolean hasIntroductions) {
 		Assert.notNull(pc, "Pointcut must not be null");
+		// 进行切点表达式的匹配最重要的就是ClassFilter和MethodMatcher这两个方法的实现。
+		// MethodMatcher中有两个matches方法。一个参数是只有Method对象和targetClass，另一个参数有
+		// Method对象和targetClass对象还有一个Method的方法参数,他们两个的区别是：
+		// 两个参数的matches是用于静态的方法匹配 三个参数的matches是在运行期动态的进行方法匹配的
+		// 先进行ClassFilter的matches方法校验
+		// 首先这个类要在所匹配的规则下
 		if (!pc.getClassFilter().matches(targetClass)) {
 			return false;
 		}
@@ -244,6 +250,7 @@ public abstract class AopUtils {
 		classes.addAll(ClassUtils.getAllInterfacesForClassAsSet(targetClass));
 
 		for (Class<?> clazz : classes) {
+			//通过反射拿到clazz类的所有方法
 			Method[] methods = ReflectionUtils.getAllDeclaredMethods(clazz);
 			for (Method method : methods) {
 				if (introductionAwareMethodMatcher != null ?
@@ -280,11 +287,16 @@ public abstract class AopUtils {
 	 * @return whether the pointcut can apply on any method
 	 */
 	public static boolean canApply(Advisor advisor, Class<?> targetClass, boolean hasIntroductions) {
+		// 如果是IntroductionAdvisor的话，则调用IntroductionAdvisor类型的实例进行过滤
+
 		if (advisor instanceof IntroductionAdvisor) {
+			// 直接调用ClassFilter类的matches方法进行过滤
 			return ((IntroductionAdvisor) advisor).getClassFilter().matches(targetClass);
 		}
+		// 通常我们的advisor是PointcutAdvisor类型的
 		else if (advisor instanceof PointcutAdvisor) {
 			PointcutAdvisor pca = (PointcutAdvisor) advisor;
+			// 从PointcutAdvisor类中获取pointcut对象，一般是AspectJExpressionPointcut
 			return canApply(pca.getPointcut(), targetClass, hasIntroductions);
 		}
 		else {
@@ -306,17 +318,22 @@ public abstract class AopUtils {
 			return candidateAdvisors;
 		}
 		List<Advisor> eligibleAdvisors = new ArrayList<>();
+		// 循环遍历候选的advisor
 		for (Advisor candidate : candidateAdvisors) {
+			// 判断当前advisor是否实现了 IntroductionAdvisor，  IntroductionAdvisor：类的拦截；PointCutAdvisor是方法级别的拦截
 			if (candidate instanceof IntroductionAdvisor && canApply(candidate, clazz)) {
 				eligibleAdvisors.add(candidate);
 			}
 		}
+		// 是否是引介增强
 		boolean hasIntroductions = !eligibleAdvisors.isEmpty();
 		for (Advisor candidate : candidateAdvisors) {
 			if (candidate instanceof IntroductionAdvisor) {
 				// already processed
 				continue;
 			}
+
+			// 判断advisor是否适合当前类
 			if (canApply(candidate, clazz, hasIntroductions)) {
 				eligibleAdvisors.add(candidate);
 			}

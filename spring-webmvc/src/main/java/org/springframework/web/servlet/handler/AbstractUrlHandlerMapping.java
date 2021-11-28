@@ -336,6 +336,7 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 			String handlerName = (String) handler;
 			ApplicationContext applicationContext = obtainApplicationContext();
 			if (applicationContext.isSingleton(handlerName)) {
+				// 创建Handler实例
 				resolvedHandler = applicationContext.getBean(handlerName);
 			}
 		}
@@ -349,6 +350,7 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 			}
 		}
 		else {
+			// 如果请求是根url，就创建一个RootHandler
 			if (urlPath.equals("/")) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Root mapping to " + getHandlerDescription(handler));
@@ -362,6 +364,7 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 				setDefaultHandler(resolvedHandler);
 			}
 			else {
+				// url -> Handler的映射关系，因为实现Controller接口的Handler，一个类中只有一个方法handleRequest
 				this.handlerMap.put(urlPath, resolvedHandler);
 				if (logger.isTraceEnabled()) {
 					logger.trace("Mapped [" + urlPath + "] onto " + getHandlerDescription(handler));

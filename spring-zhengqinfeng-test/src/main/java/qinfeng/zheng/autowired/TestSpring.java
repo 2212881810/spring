@@ -14,5 +14,12 @@ public class TestSpring {
 		context.refresh();
 
 		AController bean = context.getBean(AController.class);
+		System.out.println(bean);
+		bean = context.getBean(AController.class);
+		System.out.println(bean);
+		bean.getaService();
+		bean.getaService();
+		bean.getaService();
+
 	}
 }

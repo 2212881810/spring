@@ -527,6 +527,8 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		long startTime = System.currentTimeMillis();
 
 		try {
+			// 再一次看到这个initWebApplicationContext方法，方法名称相同，而且方法里面的逻辑也大体相同
+			// 第一次看到这个方法是org.springframework.web.context.ContextLoaderListener.contextInitialized,
 			this.webApplicationContext = initWebApplicationContext();
 			initFrameworkServlet();
 		}
@@ -558,8 +560,9 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @see #setContextConfigLocation
 	 */
 	protected WebApplicationContext initWebApplicationContext() {
-		WebApplicationContext rootContext =
-				WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+		// 这里创建获取到spring的ioc容器，wac
+		WebApplicationContext rootContext = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+
 		WebApplicationContext wac = null;
 
 		if (this.webApplicationContext != null) {
@@ -588,6 +591,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		}
 		if (wac == null) {
 			// No context instance is defined for this servlet -> create a local one
+			// 前面两个if一般都不会进入，一般情况下都是在这儿创建的spring mvc容器
 			wac = createWebApplicationContext(rootContext);
 		}
 
@@ -649,6 +653,8 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @see org.springframework.web.context.support.XmlWebApplicationContext
 	 */
 	protected WebApplicationContext createWebApplicationContext(@Nullable ApplicationContext parent) {
+
+		// 获取spring mvc容器的Ｃlass
 		Class<?> contextClass = getContextClass();
 		if (!ConfigurableWebApplicationContext.class.isAssignableFrom(contextClass)) {
 			throw new ApplicationContextException(
@@ -656,15 +662,23 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 					"': custom WebApplicationContext class [" + contextClass.getName() +
 					"] is not of type ConfigurableWebApplicationContext");
 		}
+
+		// 通过反射的方式创建spring mvc 容器
 		ConfigurableWebApplicationContext wac =
 				(ConfigurableWebApplicationContext) BeanUtils.instantiateClass(contextClass);
 
 		wac.setEnvironment(getEnvironment());
+		//将spring ioc容器设置成为spring mvc容器的parent容器
 		wac.setParent(parent);
+
+		// 获取spring mvc的配置文件
 		String configLocation = getContextConfigLocation();
+
 		if (configLocation != null) {
 			wac.setConfigLocation(configLocation);
 		}
+
+		// 配置和初始化wac，又会调用到refresh方法
 		configureAndRefreshWebApplicationContext(wac);
 
 		return wac;
@@ -684,9 +698,16 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			}
 		}
 
+		// 给wac设置servletContext
 		wac.setServletContext(getServletContext());
+		// 给wac设置servletConfig
 		wac.setServletConfig(getServletConfig());
+		// 给wac设置namespace
 		wac.setNamespace(getNamespace());
+		// 设置监听器，很重要【*****】
+		// 添加SourceFilteringListener监听器到wac容器中，实际上是添加到ContextRefreshListener这个监听器，用于监听 ContextRefreshedEvent事件 ，
+		// 这个事件是在refresh方法中的finishRefresh方法中发布的
+		// 当接收到消息之后会调用onApplicationEvent方法，调用onRefresh方法，并将refreshedEventReceived标识设置为true,表示已经refresh过了
 		wac.addApplicationListener(new SourceFilteringListener(wac, new ContextRefreshListener()));
 
 		// The wac environment's #initPropertySources will be called in any case when the context
@@ -696,8 +717,9 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		if (env instanceof ConfigurableWebEnvironment) {
 			((ConfigurableWebEnvironment) env).initPropertySources(getServletContext(), getServletConfig());
 		}
-
+		// 模板方法，扩展
 		postProcessWebApplicationContext(wac);
+		// 初始化servlet参数
 		applyInitializers(wac);
 		wac.refresh();
 	}
@@ -746,6 +768,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @see ConfigurableApplicationContext#refresh()
 	 */
 	protected void applyInitializers(ConfigurableApplicationContext wac) {
+		// 在web.xml 配置 contextInitializerClasses参数，这儿就可以获取到
 		String globalClassNames = getServletContext().getInitParameter(ContextLoader.GLOBAL_INITIALIZER_CLASSES_PARAM);
 		if (globalClassNames != null) {
 			for (String className : StringUtils.tokenizeToStringArray(globalClassNames, INIT_PARAM_DELIMITERS)) {

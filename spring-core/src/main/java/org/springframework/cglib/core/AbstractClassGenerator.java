@@ -103,6 +103,7 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 			if (classLoader == null) {
 				throw new IllegalArgumentException("classLoader == null is not yet supported");
 			}
+			// 弱引用，下次垃圾回收时进行回收
 			this.classLoader = new WeakReference<ClassLoader>(classLoader);
 			Function<AbstractClassGenerator, Object> load =
 					new Function<AbstractClassGenerator, Object>() {
@@ -111,6 +112,7 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 							return gen.wrapCachedClass(klass);
 						}
 					};
+			// 为这个ClassLoadData新建一个缓存类
 			generatedClasses = new LoadingCache<AbstractClassGenerator, Object, Object>(GET_KEY, load);
 		}
 
@@ -300,8 +302,11 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 
 	protected Object create(Object key) {
 		try {
+			// 获取当前类的类加载器
 			ClassLoader loader = getClassLoader();
+			// 当前类的类加载器缓存，缓存key为类加载器，value:ClassLoaderData
 			Map<ClassLoader, ClassLoaderData> cache = CACHE;
+			// 获取当前类加载的缓存
 			ClassLoaderData data = cache.get(loader);
 			if (data == null) {
 				synchronized (AbstractClassGenerator.class) {
@@ -316,6 +321,7 @@ abstract public class AbstractClassGenerator<T> implements ClassGenerator {
 				}
 			}
 			this.key = key;
+			// 方法内部会创建运态代理对象
 			Object obj = data.get(this, getUseCache());
 			if (obj instanceof Class) {
 				return firstInstance((Class) obj);
